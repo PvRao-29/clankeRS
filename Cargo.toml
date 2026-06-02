@@ -1,0 +1,17 @@
+[workspace]
+resolver = "2"
+members = ["crates/clankers-core"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/PvRao-29/clankeRS"
+authors = ["Pranshu Rao"]
+
+[workspace.dependencies]
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+tracing = "0.1"
+chrono = { version = "0.4", features = ["serde"] }
