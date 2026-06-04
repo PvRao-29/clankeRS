@@ -1,6 +1,9 @@
 [workspace]
 resolver = "2"
-members = ["crates/clankers-core"]
+members = [
+    "crates/clankers-core",
+    "crates/clankers-ros2",
+]
 
 [workspace.package]
 version = "0.1.0"
@@ -15,3 +18,10 @@ serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 tracing = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
+
+clankers-core = { path = "crates/clankers-core" }
+clankers-ros2 = { path = "crates/clankers-ros2" }
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+bytes = "1"
+futures = "0.3"
