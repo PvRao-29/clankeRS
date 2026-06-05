@@ -1,0 +1,30 @@
+[package]
+name = "clankers-cli"
+description = "Command-line interface for clankeRS"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "clankers"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clankers-core.workspace = true
+clankers-data.workspace = true
+clankers-ml.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+walkdir.workspace = true
+
+[dev-dependencies]
+
+[features]
+default = ["ml"]
+ml = ["clankers-ml/onnxruntime"]

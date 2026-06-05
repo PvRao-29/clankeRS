@@ -1,8 +1,10 @@
 [workspace]
+default-members = ["crates/clankers-cli"]
 resolver = "2"
 members = [
     "crates/clankers-core",
     "crates/clankers-ros2",
+    "crates/clankers-cli",
 ]
 
 [workspace.package]
@@ -25,3 +27,8 @@ tokio = { version = "1", features = ["full"] }
 async-trait = "0.1"
 bytes = "1"
 futures = "0.3"
+clankers-cli = { path = "crates/clankers-cli" }
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+walkdir = "2"
