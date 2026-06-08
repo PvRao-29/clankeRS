@@ -5,6 +5,7 @@ members = [
     "crates/clankers-core",
     "crates/clankers-ros2",
     "crates/clankers-cli",
+    "examples/ros2_pubsub_minimal",
 ]
 
 [workspace.package]
