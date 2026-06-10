@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  # Gate 1: the code is formatted, lint-clean, and tested.
+  check:
+    name: fmt / clippy / test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+      - name: cargo clippy (deny warnings)
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: cargo test
+        run: cargo test --workspace
+
+  # Gate 2: the golden path. One command sequence that must never break:
+  # PyTorch-exported ONNX -> clankeRS validation -> Rust inference -> MCAP replay.
+  golden-path:
+    name: golden path (PyTorch -> ONNX -> Rust -> replay)
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Inspect sample MCAP
+        run: cargo run -p clankers-cli -- inspect sample_data/camera_log.mcap
+
+      - name: Validate PyTorch-exported ONNX (policy model)
+        run: cargo run -p clankers-cli -- validate-model --onnx sample_data/models/policy.onnx
+
+      - name: Validate PyTorch-exported ONNX (camera detector)
+        run: >-
+          cargo run -p clankers-cli -- validate-model
+          --onnx sample_data/models/detector.onnx
+          --samples sample_data/detector_inputs
+
+      - name: Run the vertical slice (replay -> preprocess -> ONNX -> detections)
+        run: cargo run --example camera_replay
+
+      - name: Run ONNX inference node (live pub/sub)
+        run: cargo run -p camera_perception_node
