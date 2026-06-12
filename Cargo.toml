@@ -6,6 +6,7 @@ members = [
     "crates/clankers-ros2",
     "crates/clankers-cli",
     "examples/ros2_pubsub_minimal",
+    "crates/clankers-data",
 ]
 
 [workspace.package]
@@ -33,3 +34,5 @@ anyhow = "1"
 clap = { version = "4", features = ["derive"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 walkdir = "2"
+clankers-data = { path = "crates/clankers-data" }
+mcap = "0.23"
