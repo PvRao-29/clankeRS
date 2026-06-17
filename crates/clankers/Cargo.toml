@@ -1,0 +1,24 @@
+[package]
+name = "clankers"
+description = "clankeRS — Rust SDK for robotics applications in the ROS 2 ecosystem"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+clankers-core.workspace = true
+clankers-data.workspace = true
+clankers-geometry.workspace = true
+clankers-macros.workspace = true
+clankers-ml.workspace = true
+clankers-ros2.workspace = true
+clankers-runtime.workspace = true
+clankers-tensor.workspace = true
+clankers-testing.workspace = true
+tokio.workspace = true
+
+[features]
+default = ["ml"]
+ml = ["clankers-ml/onnxruntime"]

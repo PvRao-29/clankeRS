@@ -1,5 +1,5 @@
 [workspace]
-default-members = ["crates/clankers-cli"]
+default-members = ["crates/clankers-cli", "crates/clankers"]
 resolver = "2"
 members = [
     "crates/clankers-core",
@@ -7,6 +7,7 @@ members = [
     "crates/clankers-cli",
     "examples/ros2_pubsub_minimal",
     "crates/clankers-data",
+    "crates/clankers",
 ]
 
 [workspace.package]
@@ -36,3 +37,4 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 walkdir = "2"
 clankers-data = { path = "crates/clankers-data" }
 mcap = "0.23"
+clankers = { path = "crates/clankers" }
