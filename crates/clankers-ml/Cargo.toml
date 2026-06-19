@@ -1,0 +1,24 @@
+[package]
+name = "clankers-ml"
+description = "ML inference and model deployment for clankeRS"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[features]
+default = ["onnxruntime"]
+onnxruntime = ["dep:ort"]
+
+[dependencies]
+clankers-core.workspace = true
+ndarray.workspace = true
+ort = { workspace = true, optional = true }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"
