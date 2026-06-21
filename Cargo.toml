@@ -9,6 +9,7 @@ members = [
     "crates/clankers-data",
     "crates/clankers",
     "crates/clankers-ml",
+    "crates/clankers-tensor",
 ]
 
 [workspace.package]
@@ -42,3 +43,4 @@ clankers = { path = "crates/clankers" }
 clankers-ml = { path = "crates/clankers-ml" }
 ndarray = { version = "0.17", features = ["std"] }
 ort = { version = "2.0.0-rc.12", default-features = false, features = ["download-binaries", "ndarray", "tls-native", "std"] }
+clankers-tensor = { path = "crates/clankers-tensor" }
