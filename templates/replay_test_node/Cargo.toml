@@ -1,0 +1,13 @@
+[package]
+name = "{{PROJECT_NAME}}"
+version = "0.1.0"
+edition = "2021"
+
+[workspace]
+
+[dependencies]
+clankers = { path = "{{CLANKERS_PATH}}" }
+tokio = { version = "1", features = ["full"] }
+
+[dev-dependencies]
+clankers = { path = "{{CLANKERS_PATH}}" }

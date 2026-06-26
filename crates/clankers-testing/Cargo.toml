@@ -1,0 +1,15 @@
+[package]
+name = "clankers-testing"
+description = "Replay-based testing tools for clankeRS"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+clankers-core.workspace = true
+clankers-data.workspace = true
+clankers-ros2.workspace = true
+tokio.workspace = true
+tracing.workspace = true

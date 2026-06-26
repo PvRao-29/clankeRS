@@ -10,6 +10,8 @@ members = [
     "crates/clankers",
     "crates/clankers-ml",
     "crates/clankers-tensor",
+    "crates/clankers-testing",
+    "crates/clankers-macros",
 ]
 
 [workspace.package]
@@ -45,3 +47,8 @@ ndarray = { version = "0.17", features = ["std"] }
 ort = { version = "2.0.0-rc.12", default-features = false, features = ["download-binaries", "ndarray", "tls-native", "std"] }
 clankers-tensor = { path = "crates/clankers-tensor" }
 serde_json = "1"
+clankers-testing = { path = "crates/clankers-testing" }
+clankers-macros = { path = "crates/clankers-macros" }
+proc-macro2 = "1"
+quote = "1"
+syn = { version = "2", features = ["full"] }
