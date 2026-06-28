@@ -1,0 +1,44 @@
+[project]
+name = "{{PROJECT_NAME}}"
+version = "0.1.0"
+
+[node]
+name = "{{PROJECT_NAME}}"
+runtime = "async"
+
+[topics.input.camera]
+name = "/camera/image_raw"
+type = "sensor_msgs/Image"
+qos = "sensor_data"
+
+[topics.output.detections]
+name = "/detections"
+type = "clankeRS/DetectionArray"
+qos = "default"
+
+[model.detector]
+source_framework = "pytorch"
+path = "models/detector.onnx"
+backend = "onnxruntime"
+device = "cpu"
+warmup_runs = 10
+max_latency_ms = 20
+
+[model.detector.input]
+topic = "/camera/image_raw"
+shape = [1, 3, 224, 224]
+layout = "nchw"
+dtype = "f32"
+normalization = "imagenet"
+
+[logging]
+record_mcap = true
+output_dir = "logs/"
+
+[replay]
+default_log = "test_data/camera_sample.mcap"
+deterministic = true
+
+[testing]
+max_latency_ms = 20
+allow_dropped_messages = false
