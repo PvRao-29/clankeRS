@@ -12,6 +12,7 @@ members = [
     "crates/clankers-tensor",
     "crates/clankers-testing",
     "crates/clankers-macros",
+    "examples/camera_perception_node",
 ]
 
 [workspace.package]

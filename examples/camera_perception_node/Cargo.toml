@@ -1,0 +1,10 @@
+[package]
+name = "camera_perception_node"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+clankers = { path = "../../crates/clankers" }
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
