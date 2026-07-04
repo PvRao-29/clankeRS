@@ -1,59 +1,64 @@
 [workspace]
-default-members = ["crates/clankers-cli", "crates/clankers"]
 resolver = "2"
 members = [
-    "crates/clankers-core",
-    "crates/clankers-ros2",
-    "crates/clankers-cli",
-    "examples/ros2_pubsub_minimal",
-    "crates/clankers-data",
     "crates/clankers",
+    "crates/clankers-core",
+    "crates/clankers-cli",
+    "crates/clankers-ros2",
+    "crates/clankers-data",
     "crates/clankers-ml",
     "crates/clankers-tensor",
     "crates/clankers-testing",
     "crates/clankers-macros",
-    "examples/camera_perception_node",
     "crates/clankers-geometry",
     "crates/clankers-runtime",
+    "examples/ros2_pubsub_minimal",
+    "examples/camera_perception_node",
 ]
+default-members = ["crates/clankers-cli", "crates/clankers"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/PvRao-29/clankeRS"
+homepage = "https://github.com/PvRao-29/clankeRS"
 authors = ["Pranshu Rao"]
 
 [workspace.dependencies]
-thiserror = "2"
-serde = { version = "1", features = ["derive"] }
-toml = "0.8"
-tracing = "0.1"
-chrono = { version = "0.4", features = ["serde"] }
-
-clankers-core = { path = "crates/clankers-core" }
-clankers-ros2 = { path = "crates/clankers-ros2" }
-tokio = { version = "1", features = ["full"] }
-async-trait = "0.1"
-bytes = "1"
-futures = "0.3"
-clankers-cli = { path = "crates/clankers-cli" }
-anyhow = "1"
-clap = { version = "4", features = ["derive"] }
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-walkdir = "2"
-clankers-data = { path = "crates/clankers-data" }
-mcap = "0.23"
 clankers = { path = "crates/clankers" }
+clankers-core = { path = "crates/clankers-core" }
+clankers-cli = { path = "crates/clankers-cli" }
+clankers-ros2 = { path = "crates/clankers-ros2" }
+clankers-data = { path = "crates/clankers-data" }
 clankers-ml = { path = "crates/clankers-ml" }
-ndarray = { version = "0.17", features = ["std"] }
-ort = { version = "2.0.0-rc.12", default-features = false, features = ["download-binaries", "ndarray", "tls-native", "std"] }
 clankers-tensor = { path = "crates/clankers-tensor" }
-serde_json = "1"
 clankers-testing = { path = "crates/clankers-testing" }
 clankers-macros = { path = "crates/clankers-macros" }
-proc-macro2 = "1"
-quote = "1"
-syn = { version = "2", features = ["full"] }
 clankers-geometry = { path = "crates/clankers-geometry" }
 clankers-runtime = { path = "crates/clankers-runtime" }
+
+anyhow = "1"
+async-trait = "0.1"
+bytes = "1"
+chrono = { version = "0.4", features = ["serde"] }
+clap = { version = "4", features = ["derive"] }
+futures = "0.3"
+mcap = "0.23"
+ndarray = { version = "0.17", features = ["std"] }
+ort = { version = "2.0.0-rc.12", default-features = false, features = ["download-binaries", "ndarray", "tls-native", "std"] }
+proc-macro2 = "1"
+quote = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+syn = { version = "2", features = ["full"] }
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+toml = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+walkdir = "2"
+
+[profile.release]
+lto = true
+codegen-units = 1
