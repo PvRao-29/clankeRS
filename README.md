@@ -2,29 +2,85 @@
 
 **Train in PyTorch. Deploy in Rust. Replay-test against real robot logs.**
 
+**Repository:** [github.com/PvRao-29/clankeRS](https://github.com/PvRao-29/clankeRS)
+
+clankeRS is an early-stage Rust SDK for robotics teams on ROS 2 and PyTorch. The goal is memory-safe robot nodes, ONNX inference in Rust, MCAP-based replay testing, and a CLI that ties the workflow together.
+
+clankeRS is **not** a ROS replacement and **not** a PyTorch replacement. It is a Rust layer on top of your existing stack.
+
+> **Honest scope today:** Pub/sub in examples uses an **in-memory simulated bus** (no ROS 2 / DDS install required). Real `rclrs` integration is not shipped yet. Latency numbers depend on your machine and model size — treat benchmarks as local measurements, not production guarantees.
+
 <p align="center">
-  <img src="docs/assets/camera_replay.gif" alt="clankeRS: replay a real MCAP camera log through ONNX inference in Rust, with a live latency report" width="680">
+  <img src="docs/assets/camera_replay.gif" alt="clankeRS camera_replay example: MCAP log through ONNX inference with a latency report" width="680">
 </p>
 
-<p align="center"><sub>One command — <code>cargo run --release --example camera_replay</code> — replays a real MCAP log through preprocess → ONNX inference → detections → ROS 2 publish, and reports measured latency.</sub></p>
+<p align="center"><sub>Recorded from <code>cargo run --release -p clankers --example camera_replay</code> on a sample MCAP log.</sub></p>
 
-clankeRS is a Rust SDK for building reliable robotics applications inside the existing ROS 2 ecosystem. It helps you write Rust robot nodes that subscribe to ROS 2 topics, run PyTorch-trained models through ONNX, publish outputs, record MCAP logs, and replay real robot data in tests.
+## Quick start
 
-clankeRS is not a ROS replacement and not a PyTorch replacement. It is a production-focused Rust layer for teams that want memory safety, predictable performance, and better testing in robotics software.
-
-## The golden path
-
-The whole point of clankeRS in one command:
-
-```text
-PyTorch model → ONNX export → clankeRS validation → Rust inference → MCAP replay test
-```
+**Requirements:** Rust stable, network on first build (ONNX Runtime binary is downloaded automatically).
 
 ```bash
-cargo run --release --example camera_replay
+git clone https://github.com/PvRao-29/clankeRS.git
+cd clankeRS
+cargo build --workspace
+
+# Golden-path demo (MCAP → preprocess → ONNX → detections → sim pub/sub)
+cargo run --release -p clankers --example camera_replay
+
+# Optional: install the CLI as `clankers`
+cargo install --path crates/clankers-cli
+clankers new hello_clanker --template basic-node
+cd hello_clanker
+clankers run
 ```
 
-This replays a real MCAP camera log through the full pipeline — decode frame → preprocess image → ONNX inference → detections → publish to a ROS 2 topic — and reports measured latency. Real output (every number is measured, not mocked):
+## What works today
+
+These paths are exercised in CI (`.github/workflows/ci.yml`) from a fresh clone with `cargo` + network.
+
+| Area | How to try it | Notes |
+|------|---------------|-------|
+| Workspace build | `cargo build --workspace` | |
+| CLI | `cargo run -p clankers-cli -- --help` | Install with `cargo install --path crates/clankers-cli` |
+| MCAP inspect | `clankers inspect sample_data/camera_log.mcap` | |
+| MCAP replay (data only) | `clankers replay sample_data/camera_log.mcap` | Replays messages and reports stats; **does not** run your node or ONNX |
+| MCAP latency stats | `clankers latency sample_data/camera_log.mcap` | |
+| **Golden-path vertical slice** | `cargo run --release -p clankers --example camera_replay` | Full pipeline on sample data; same as `clankers demo camera-perception` |
+| ONNX inference node | `cargo run -p camera_perception_node` | 10 synthetic camera frames on the sim bus; uses `sample_data/models/detector.onnx` when present |
+| Model validation | see below | Compares Rust ONNX output to a **pre-recorded** PyTorch reference |
+| Image preprocessing | `clankers_tensor::ImageTensor` | Resize, ImageNet normalize, NCHW |
+| Replay-test macro | `#[clankers::replay_test("…")]` | See [docs/testing.md](docs/testing.md) |
+| Project templates | `clankers new <name> --template basic-node` | Also: `perception-node`, `ml-inference-node`, `replay-test-node` |
+
+### Still rough / not done yet
+
+| Area | Status |
+|------|--------|
+| Real ROS 2 (DDS) via `rclrs` | Planned (`ros2` feature flag exists; backend not wired) |
+| `clankers record` | Stub — prints a hint; MCAP recording from `clankers run` is incomplete |
+| `clankers visualize` | Prints MCAP summary + Foxglove/Rerun pointers; no live bridge |
+| Live PyTorch at validate time | Not implemented — validation uses committed `expected_output.json` files |
+| LibTorch / ExecuTorch backends | Planned |
+| Production-hardened APIs | v1.0 goal — public APIs may change |
+
+See [docs/roadmap.md](docs/roadmap.md) for the full roadmap.
+
+## Golden path
+
+The workflow clankeRS is building toward:
+
+```text
+PyTorch model → ONNX export → reference outputs → Rust ONNX inference → MCAP replay test
+```
+
+**Try it now** (one command, sample data included):
+
+```bash
+cargo run --release -p clankers --example camera_replay
+```
+
+This reads `sample_data/camera_log.mcap` and `sample_data/models/detector.onnx`, runs preprocess → ONNX → detections, publishes on a **simulated** `/detections` topic, and prints measured latency. Example output (numbers vary by machine):
 
 ```text
 Loading detector.onnx...
@@ -38,44 +94,23 @@ Replay complete.
 
 Replay Summary
   Frames:    200
-  FPS:       765.1
+  FPS:       …
   Detections received on /detections: 200
   Dropped:   0
 
 Latency:
-  p50: 1.3 ms
-  p95: 1.5 ms
-  p99: 1.7 ms
+  p50: …
+  p95: …
+  p99: …
 
 ✓ Replay passed
 ```
 
-(`cargo run -p clankers-cli -- demo camera-perception` runs the same slice via the CLI.)
+The FPS/latency figures measure the in-process pipeline (decode → preprocess → ONNX → sim publish). They do **not** include real camera I/O, network DDS, or robot hardware.
 
-## Status
+## Model validation
 
-Everything marked **Working** runs from a fresh clone with `cargo` + a network connection (the ONNX Runtime binary is fetched on first build). No ROS 2 install is required for development.
-
-| Feature | Command | Status |
-|---|---|---|
-| Build workspace | `cargo build --workspace` | ✅ Working |
-| CLI help | `cargo run -p clankers-cli -- --help` | ✅ Working |
-| MCAP inspect | `cargo run -p clankers-cli -- inspect sample_data/camera_log.mcap` | ✅ Working |
-| MCAP replay + latency | `cargo run -p clankers-cli -- replay sample_data/camera_log.mcap` | ✅ Working |
-| **PyTorch→ONNX validation** | `cargo run -p clankers-cli -- validate-model --onnx sample_data/models/policy.onnx` | ✅ Working |
-| **Golden-path vertical slice** | `cargo run --release --example camera_replay` | ✅ Working |
-| ONNX inference node (live pub/sub) | `cargo run -p camera_perception_node` | ✅ Working |
-| Image preprocessing (resize / ImageNet / NCHW) | `clankers_tensor::ImageTensor` | ✅ Working |
-| Replay-test macros | `#[clankers::replay_test("…")]` | ✅ Working |
-| Real ROS 2 (DDS) via `rclrs` | `--features ros2` | 🚧 Planned |
-| LibTorch / ExecuTorch backends | `features = ["torch"]` | 🚧 Planned |
-| Foxglove / Rerun visualization bridges | — | 🚧 Planned |
-
-> ROS 2 pub/sub in the examples runs on an **in-memory simulated bus** so the SDK is usable without a ROS install. The real `rclrs` (DDS) backend is planned behind the `ros2` feature flag.
-
-## The adoption feature: model validation
-
-Robotics teams will only trust a Rust runtime if it provably matches the PyTorch model they trained. `validate-model` proves it by diffing the Rust ONNX Runtime output against a stored PyTorch reference output:
+`validate-model` checks that Rust ONNX Runtime output matches a **stored PyTorch reference** (`expected_output.json`) for a fixed sample input. PyTorch is **not** required at validation time — references are generated offline (see below).
 
 ```bash
 cargo run -p clankers-cli -- validate-model \
@@ -83,66 +118,47 @@ cargo run -p clankers-cli -- validate-model \
   --samples sample_data/detector_inputs
 ```
 
+Example output:
+
 ```text
 Model compatibility: passed
 
 PyTorch output shape:     [1, 6]
 Rust ONNX output shape:   [1, 6]
 
-Max absolute error:       0.00001529
-Mean absolute error:      0.00000653
+Max absolute error:       …
+Mean absolute error:      …
 Tolerance:                0.001000
 
-Rust latency p50:         2.677 ms
+Rust latency p50:         … ms
 
 Status: safe to deploy
 ```
 
-The reference outputs in `sample_data/**/expected_output.json` are generated by real PyTorch (see below), so this is a genuine cross-runtime comparison — but PyTorch is **not** required to run validation or CI.
+The `safe to deploy` line means **numerical agreement on the bundled sample inputs** within tolerance — not a full production sign-off. For your own models, regenerate references and tighten tolerance as needed. Live `--pytorch` / `--checkpoint` comparison flags are reserved for a future release.
 
-## Quick start
+Policy model (default samples dir):
 
 ```bash
-# Build everything
-cargo build --workspace
-
-# Run the golden-path demo
-cargo run -p clankers-cli -- demo camera-perception
-
-# Install the CLI (optional; enables the `clankers` command)
-cargo install --path crates/clankers-cli
-
-# Create a new node from a template
-clankers new hello_clanker --template basic-node
-cd hello_clanker
-clankers run
+cargo run -p clankers-cli -- validate-model --onnx sample_data/models/policy.onnx
 ```
 
-## Regenerating the sample models
+## Regenerating sample models
 
-The sample ONNX models and PyTorch reference outputs are committed under `sample_data/`. To regenerate them (only needed if you change the models):
+Sample ONNX models and PyTorch reference outputs live under `sample_data/` and are checked into the repo:
 
 ```bash
 pip install torch onnx
 python3 scripts/make_sample_models.py
 ```
 
-This exports two small, deterministic PyTorch models to ONNX and records their reference outputs so `clankers validate-model` can compare PyTorch vs Rust without PyTorch installed at validation time.
-
-## What is planned
-
-- Full `rclrs` (real ROS 2 / DDS) integration behind a `ros2` feature flag
-- LibTorch / ExecuTorch optional backends
-- Foxglove and Rerun visualization bridges
-- Geometry and runtime observability expansion
-
-See [docs/roadmap.md](docs/roadmap.md) for details.
+This exports two small deterministic PyTorch models to ONNX and writes `expected_output.json` for `validate-model`.
 
 ## Documentation
 
 - [Getting started](docs/getting_started.md)
 - [Installation](docs/installation.md)
-- [ROS 2 integration](docs/ros2_integration.md)
+- [ROS 2 integration](docs/ros2_integration.md) — sim bus today, real DDS planned
 - [PyTorch to ONNX](docs/pytorch_to_onnx.md)
 - [Model validation](docs/model_validation.md)
 - [MCAP replay](docs/mcap_replay.md)
