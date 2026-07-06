@@ -2,8 +2,6 @@
 
 **Train in PyTorch. Deploy in Rust. Replay-test against real robot logs.**
 
-**Repository:** [github.com/PvRao-29/clankeRS](https://github.com/PvRao-29/clankeRS)
-
 clankeRS is an early-stage Rust SDK for robotics teams on ROS 2 and PyTorch. The goal is memory-safe robot nodes, ONNX inference in Rust, MCAP-based replay testing, and a CLI that ties the workflow together.
 
 clankeRS is **not** a ROS replacement and **not** a PyTorch replacement. It is a Rust layer on top of your existing stack.
