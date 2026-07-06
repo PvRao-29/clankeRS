@@ -1,6 +1,6 @@
 target/
 **/target/
-hello_robot/
+hello_clanker/
 **/*.rs.bk
 Cargo.lock
 *.swp

@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn relative_path_to_sibling_crate() {
-        let from = Path::new("/workspace/clankeRS/hello_robot");
+        let from = Path::new("/workspace/clankeRS/hello_clanker");
         let to = Path::new("/workspace/clankeRS/crates/clankers");
         assert_eq!(
             relative_path(from, to).unwrap(),

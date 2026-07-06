@@ -113,8 +113,8 @@ cargo run -p clankers-cli -- demo camera-perception
 cargo install --path crates/clankers-cli
 
 # Create a new node from a template
-clankers new hello_robot --template basic-node
-cd hello_robot
+clankers new hello_clanker --template basic-node
+cd hello_clanker
 clankers run
 ```
 

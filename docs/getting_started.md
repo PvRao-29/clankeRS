@@ -16,14 +16,14 @@ cargo install --path crates/clankers-cli
 Without installing, prefix commands with `cargo run -p clankers-cli --`:
 
 ```bash
-cargo run -p clankers-cli -- new hello_robot --template basic-node
+cargo run -p clankers-cli -- new hello_clanker --template basic-node
 ```
 
 ## Create your first node
 
 ```bash
-clankers new hello_robot --template basic-node
-cd hello_robot
+clankers new hello_clanker --template basic-node
+cd hello_clanker
 clankers run
 ```
 
