@@ -10,7 +10,9 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # Gate 1: the code is formatted, lint-clean, and tested.
   check:
+    name: fmt / clippy / test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,19 +25,19 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: cargo fmt
+      - name: cargo fmt --check
         run: cargo fmt --all -- --check
 
-      - name: cargo check
-        run: cargo check --workspace --all-targets
-
-      - name: cargo clippy
+      - name: cargo clippy (deny warnings)
         run: cargo clippy --workspace --all-targets -- -D warnings
 
       - name: cargo test
         run: cargo test --workspace
 
-  replay-test:
+  # Gate 2: the golden path. One command sequence that must never break:
+  # PyTorch-exported ONNX -> clankeRS validation -> Rust inference -> MCAP replay.
+  golden-path:
+    name: golden path (PyTorch -> ONNX -> Rust -> replay)
     runs-on: ubuntu-latest
     needs: check
     steps:
@@ -47,11 +49,23 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Generate sample MCAP
-        run: cargo run -p clankers-cli --example generate_sample_mcap 2>/dev/null || cargo test -p clankers-data -- --nocapture
+      - name: Build CLI and demo node
+        run: cargo build -p clankers-cli -p camera_perception_node
 
       - name: Inspect sample MCAP
-        run: |
-          if [ -f sample_data/camera_log.mcap ]; then
-            cargo run -p clankers-cli -- inspect sample_data/camera_log.mcap
-          fi
+        run: cargo run -p clankers-cli -- inspect sample_data/camera_log.mcap
+
+      - name: Validate PyTorch-exported ONNX (policy model)
+        run: cargo run -p clankers-cli -- validate-model --onnx sample_data/models/policy.onnx
+
+      - name: Validate PyTorch-exported ONNX (camera detector)
+        run: >-
+          cargo run -p clankers-cli -- validate-model
+          --onnx sample_data/models/detector.onnx
+          --samples sample_data/detector_inputs
+
+      - name: Run golden-path demo
+        run: cargo run -p clankers-cli -- demo camera-perception
+
+      - name: Run ONNX inference node
+        run: cargo run -p camera_perception_node

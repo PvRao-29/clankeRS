@@ -121,7 +121,7 @@ async fn main() -> anyhow::Result<()> {
         } => import_pytorch::execute(&model, &checkpoint, &output, opset)?,
         Commands::AddModel { path } => add_model::execute(&path)?,
         Commands::Visualize { file } => visualize::execute(&file)?,
-        Commands::Demo { name } => commands::demo::execute(&name)?,
+        Commands::Demo { name } => commands::demo::execute(&name).await?,
     }
 
     Ok(())

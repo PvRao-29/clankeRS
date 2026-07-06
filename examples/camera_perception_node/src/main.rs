@@ -20,11 +20,14 @@ async fn main() -> RobotResult<()> {
         .publish::<DetectionArray>("/detections", QosProfile::default())
         .await?;
 
-    // Load model if available, otherwise run dummy inference
+    // Load model if available, otherwise run dummy inference. Fall back to the
+    // ONNX detector shipped in sample_data so the demo runs real inference when
+    // launched from the workspace root.
     let model = ctx
         .model_config("detector")
         .ok()
-        .and_then(|cfg| Model::load(ctx.resolve_path(&cfg.path)).ok());
+        .and_then(|cfg| Model::load(ctx.resolve_path(&cfg.path)).ok())
+        .or_else(|| Model::load("sample_data/models/detector.onnx").ok());
 
     if let Some(ref m) = model {
         tracing::info!(path = %m.metadata().path.display(), "loaded ONNX model");

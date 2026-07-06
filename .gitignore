@@ -18,3 +18,4 @@ __pycache__/
 !examples/**/models/*.onnx
 .env
 TASK.md
+.claude/

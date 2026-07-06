@@ -1,0 +1,20 @@
+# --- GitHub Linguist: make the repo read as the Rust project it is ---
+# Sample logs and ML models are assets, not source. Excluding them keeps the
+# language bar honest (this is a Rust SDK) instead of dominated by binaries.
+sample_data/**       linguist-vendored
+*.mcap               linguist-vendored binary
+*.onnx               linguist-vendored binary
+*.pt                 linguist-vendored binary
+*.npy                linguist-vendored binary
+
+# Vendored / third-party / generated trees (e.g. a bundled ONNX Runtime build,
+# which is what usually drags a Rust repo's stats toward C++/Makefile).
+third_party/**       linguist-vendored
+vendor/**            linguist-vendored
+**/onnxruntime*/**   linguist-vendored
+*.o                  linguist-vendored
+*.a                  linguist-vendored
+
+# Treat binary assets as binary so they never produce noisy diffs.
+*.mcap binary
+*.onnx binary

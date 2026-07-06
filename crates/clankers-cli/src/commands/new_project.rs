@@ -17,9 +17,7 @@ pub fn execute(name: &str, template: &str) -> Result<()> {
     let clankers_path = clankers_dependency_path(dest)?;
     replace_in_tree(dest, "{{CLANKERS_PATH}}", &clankers_path)?;
 
-    println!(
-        "clankeRS project created: {name}\n\nNext steps:\n  cd {name}\n  clankers run"
-    );
+    println!("clankeRS project created: {name}\n\nNext steps:\n  cd {name}\n  clankers run");
     Ok(())
 }
 
@@ -33,7 +31,7 @@ fn clankers_dependency_path(dest: &Path) -> Result<String> {
             }
         }
     }
-  // Fallback for out-of-tree projects after `cargo install clankers-cli`
+    // Fallback for out-of-tree projects after `cargo install clankers-cli`
     Ok("../clankeRS/crates/clankers".to_string())
 }
 
