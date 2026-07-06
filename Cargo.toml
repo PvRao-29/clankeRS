@@ -15,7 +15,7 @@ members = [
     "examples/ros2_pubsub_minimal",
     "examples/camera_perception_node",
 ]
-default-members = ["crates/clankers-cli"]
+default-members = ["crates/clankers-cli", "crates/clankers"]
 
 [workspace.package]
 version = "0.1.0"

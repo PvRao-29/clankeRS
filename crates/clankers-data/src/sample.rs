@@ -13,7 +13,7 @@ pub fn generate_camera_log(path: impl AsRef<Path>) -> RobotResult<()> {
     }
 
     let mut writer = McapWriter::create(path)?;
-    let num_frames = 20u32;
+    let num_frames = 200u32;
     for i in 0..num_frames {
         let w = 64u32;
         let h = 64u32;

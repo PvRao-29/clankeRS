@@ -6,6 +6,8 @@ sample_data/**       linguist-vendored
 *.onnx               linguist-vendored binary
 *.pt                 linguist-vendored binary
 *.npy                linguist-vendored binary
+*.gif                linguist-vendored binary
+docs/assets/**       linguist-vendored
 
 # Vendored / third-party / generated trees (e.g. a bundled ONNX Runtime build,
 # which is what usually drags a Rust repo's stats toward C++/Makefile).

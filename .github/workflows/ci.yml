@@ -49,9 +49,6 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
-      - name: Build CLI and demo node
-        run: cargo build -p clankers-cli -p camera_perception_node
-
       - name: Inspect sample MCAP
         run: cargo run -p clankers-cli -- inspect sample_data/camera_log.mcap
 
@@ -64,8 +61,8 @@ jobs:
           --onnx sample_data/models/detector.onnx
           --samples sample_data/detector_inputs
 
-      - name: Run golden-path demo
-        run: cargo run -p clankers-cli -- demo camera-perception
+      - name: Run the vertical slice (replay -> preprocess -> ONNX -> detections)
+        run: cargo run --example camera_replay
 
-      - name: Run ONNX inference node
+      - name: Run ONNX inference node (live pub/sub)
         run: cargo run -p camera_perception_node

@@ -1,8 +1,14 @@
 # clankeRS
 
-clankeRS is a Rust SDK for building reliable robotics applications inside the existing ROS 2 ecosystem.
+**Train in PyTorch. Deploy in Rust. Replay-test against real robot logs.**
 
-It helps you write Rust robot nodes that can subscribe to ROS 2 topics, run PyTorch-trained models through ONNX, publish outputs, record MCAP logs, and replay real robot data in tests.
+<p align="center">
+  <img src="docs/assets/camera_replay.gif" alt="clankeRS: replay a real MCAP camera log through ONNX inference in Rust, with a live latency report" width="680">
+</p>
+
+<p align="center"><sub>One command — <code>cargo run --release --example camera_replay</code> — replays a real MCAP log through preprocess → ONNX inference → detections → ROS 2 publish, and reports measured latency.</sub></p>
+
+clankeRS is a Rust SDK for building reliable robotics applications inside the existing ROS 2 ecosystem. It helps you write Rust robot nodes that subscribe to ROS 2 topics, run PyTorch-trained models through ONNX, publish outputs, record MCAP logs, and replay real robot data in tests.
 
 clankeRS is not a ROS replacement and not a PyTorch replacement. It is a production-focused Rust layer for teams that want memory safety, predictable performance, and better testing in robotics software.
 
@@ -15,28 +21,36 @@ PyTorch model → ONNX export → clankeRS validation → Rust inference → MCA
 ```
 
 ```bash
-cargo run -p clankers-cli -- demo camera-perception
+cargo run --release --example camera_replay
 ```
 
-Real output (every number below is measured, not mocked):
+This replays a real MCAP camera log through the full pipeline — decode frame → preprocess image → ONNX inference → detections → publish to a ROS 2 topic — and reports measured latency. Real output (every number is measured, not mocked):
 
 ```text
-clankeRS camera perception demo
+Loading detector.onnx...
+Opening camera_log.mcap...
+Running replay...
 
-Loaded model: sample_data/models/detector.onnx
-Input log:    sample_data/camera_log.mcap
-Input topic:  /camera/image_raw
-Output topic: /detections
+Frame 200/200
 
-Model validation: passed  (max abs error 0.000015 <= tol 0.001)
-Replay:           passed
-Dropped messages: 0
+Published 200 detections to /detections
+Replay complete.
+
+Replay Summary
+  Frames:    200
+  FPS:       765.1
+  Detections received on /detections: 200
+  Dropped:   0
 
 Latency:
-  p50: 510.33 µs
-  p95: 699.75 µs
-  p99: 759.00 µs
+  p50: 1.3 ms
+  p95: 1.5 ms
+  p99: 1.7 ms
+
+✓ Replay passed
 ```
+
+(`cargo run -p clankers-cli -- demo camera-perception` runs the same slice via the CLI.)
 
 ## Status
 
@@ -49,8 +63,8 @@ Everything marked **Working** runs from a fresh clone with `cargo` + a network c
 | MCAP inspect | `cargo run -p clankers-cli -- inspect sample_data/camera_log.mcap` | ✅ Working |
 | MCAP replay + latency | `cargo run -p clankers-cli -- replay sample_data/camera_log.mcap` | ✅ Working |
 | **PyTorch→ONNX validation** | `cargo run -p clankers-cli -- validate-model --onnx sample_data/models/policy.onnx` | ✅ Working |
-| Golden-path demo | `cargo run -p clankers-cli -- demo camera-perception` | ✅ Working |
-| ONNX inference node | `cargo run -p camera_perception_node` | ✅ Working |
+| **Golden-path vertical slice** | `cargo run --release --example camera_replay` | ✅ Working |
+| ONNX inference node (live pub/sub) | `cargo run -p camera_perception_node` | ✅ Working |
 | Image preprocessing (resize / ImageNet / NCHW) | `clankers_tensor::ImageTensor` | ✅ Working |
 | Replay-test macros | `#[clankers::replay_test("…")]` | ✅ Working |
 | Real ROS 2 (DDS) via `rclrs` | `--features ros2` | 🚧 Planned |
