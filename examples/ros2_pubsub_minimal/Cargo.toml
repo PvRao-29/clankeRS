@@ -8,3 +8,8 @@ publish = false
 clankers = { path = "../../crates/clankers" }
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
+
+[features]
+# Build against a real ROS 2 graph (colcon only):
+#   cargo build -p ros2_pubsub_minimal --features ros2
+ros2 = ["clankers/ros2"]

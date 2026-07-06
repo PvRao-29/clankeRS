@@ -22,3 +22,5 @@ tokio.workspace = true
 [features]
 default = ["ml"]
 ml = ["clankers-ml/onnxruntime"]
+# Real ROS 2 / DDS backend (colcon build only — see docs/ros2_integration.md).
+ros2 = ["clankers-ros2/ros2"]

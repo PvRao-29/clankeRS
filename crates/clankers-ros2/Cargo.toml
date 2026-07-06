@@ -10,7 +10,11 @@ authors.workspace = true
 [features]
 default = ["sim"]
 sim = []
-ros2 = []
+# The `ros2` feature swaps the in-memory sim bus for a real rclrs/DDS backend.
+# It can only be *built* inside a colcon workspace that provides the generated
+# ROS message crates (sensor_msgs, std_msgs). Plain `cargo build` (sim) never
+# compiles it, so CI stays ROS-free. See docs/ros2_integration.md and package.xml.
+ros2 = ["dep:rclrs"]
 
 [dependencies]
 async-trait.workspace = true
@@ -21,3 +25,10 @@ serde_json.workspace = true
 thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
+
+# rclrs is on crates.io and resolves for the (default, unactivated) sim build,
+# but only *compiles* with the ROS C libraries present. The generated message
+# crates (sensor_msgs, std_msgs) are NOT on crates.io — colcon-ros-cargo injects
+# them from the overlay at build time (declared in package.xml), so they are
+# deliberately absent here.
+rclrs = { version = "0.7", optional = true }
