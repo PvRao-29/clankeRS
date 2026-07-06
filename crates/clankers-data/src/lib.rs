@@ -1,4 +1,4 @@
-//! MCAP data logging, replay, and inspection.
+//! MCAP data logging, replay, and inspection for clankeRS.
 
 pub mod compare;
 pub mod inspect;

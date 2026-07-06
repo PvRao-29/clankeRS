@@ -1,5 +1,12 @@
 # Installation
 
+## Clone
+
+```bash
+git clone https://github.com/PvRao-29/clankeRS.git
+cd clankeRS
+```
+
 ## Requirements
 
 - Rust stable (1.75+)

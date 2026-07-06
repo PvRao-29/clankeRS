@@ -3,7 +3,7 @@
 pub mod prelude;
 
 pub use clankers_core::{
-    ClankersConfig, LatencyStats, RobotContext, RobotError, RobotResult, Timestamp, TopicName,
+    ClankeRSConfig, LatencyStats, RobotContext, RobotError, RobotResult, Timestamp, TopicName,
 };
 pub use clankers_data::{InspectReport, McapLog, Replay, ReplayResult};
 pub use clankers_geometry::{Pose, Transform, Twist};

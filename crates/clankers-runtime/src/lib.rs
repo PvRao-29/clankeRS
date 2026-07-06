@@ -1,4 +1,4 @@
-//! Execution, scheduling, latency, and runtime monitoring.
+//! Execution, scheduling, and observability for clankeRS.
 
 pub mod metrics;
 pub mod runtime;

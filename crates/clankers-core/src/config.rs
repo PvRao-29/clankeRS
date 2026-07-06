@@ -9,7 +9,7 @@ use crate::types::NodeName;
 
 /// Full clankeRS project configuration from `clankeRS.toml`.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct ClankersConfig {
+pub struct ClankeRSConfig {
     #[serde(default)]
     pub project: ProjectConfig,
     #[serde(default)]
@@ -149,7 +149,7 @@ pub struct TestingConfig {
     pub allow_dropped_messages: bool,
 }
 
-impl ClankersConfig {
+impl ClankeRSConfig {
     pub fn load(path: impl AsRef<Path>) -> RobotResult<Self> {
         let path = path.as_ref();
         let contents = fs::read_to_string(path).map_err(|e| {
@@ -237,7 +237,7 @@ record_mcap = true
 output_dir = "logs/"
 level = "info"
 "#;
-        let config = ClankersConfig::parse(toml).unwrap();
+        let config = ClankeRSConfig::parse(toml).unwrap();
         assert_eq!(config.node_name().as_str(), "camera_detector");
         assert!(config.model.contains_key("detector"));
         assert_eq!(config.topics.input["camera"].name, "/camera/image_raw");

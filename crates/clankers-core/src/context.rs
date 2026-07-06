@@ -1,19 +1,19 @@
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use crate::config::ClankersConfig;
+use crate::config::ClankeRSConfig;
 use crate::error::RobotResult;
 use crate::types::NodeName;
 
 /// Runtime context for a clankeRS node.
 #[derive(Clone)]
 pub struct RobotContext {
-    pub config: Arc<ClankersConfig>,
+    pub config: Arc<ClankeRSConfig>,
     pub work_dir: PathBuf,
 }
 
 impl RobotContext {
-    pub fn new(config: ClankersConfig, work_dir: impl Into<PathBuf>) -> Self {
+    pub fn new(config: ClankeRSConfig, work_dir: impl Into<PathBuf>) -> Self {
         Self {
             config: Arc::new(config),
             work_dir: work_dir.into(),
@@ -26,13 +26,13 @@ impl RobotContext {
             .parent()
             .map(PathBuf::from)
             .unwrap_or_else(|| PathBuf::from("."));
-        let config = ClankersConfig::load(&path)?;
+        let config = ClankeRSConfig::load(&path)?;
         Ok(Self::new(config, work_dir))
     }
 
     pub fn from_work_dir(work_dir: impl Into<PathBuf>) -> RobotResult<Self> {
         let work_dir = work_dir.into();
-        let config = ClankersConfig::load_from_dir(&work_dir)?;
+        let config = ClankeRSConfig::load_from_dir(&work_dir)?;
         Ok(Self::new(config, work_dir))
     }
 

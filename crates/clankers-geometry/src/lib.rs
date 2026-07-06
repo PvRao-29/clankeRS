@@ -1,4 +1,4 @@
-//! Robotics math, transforms, frames, and units.
+//! Robotics math, transforms, frames, and units for clankeRS.
 
 pub mod pose;
 pub mod transform;

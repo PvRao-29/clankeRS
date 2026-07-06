@@ -21,7 +21,8 @@ default-members = ["crates/clankers-cli"]
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/pranshurao/clankeRS"
+repository = "https://github.com/PvRao-29/clankeRS"
+homepage = "https://github.com/PvRao-29/clankeRS"
 authors = ["Pranshu Rao"]
 
 [workspace.dependencies]

@@ -22,7 +22,7 @@ pub fn execute(model: &str, checkpoint: &str, output: &str, opset: Option<u32>) 
         anyhow::bail!("PyTorch export failed");
     }
 
-    println!("Exported ONNX model to {output}");
+    println!("clankeRS: exported ONNX model to {output}");
     Ok(())
 }
 

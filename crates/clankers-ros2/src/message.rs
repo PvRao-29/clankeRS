@@ -73,7 +73,7 @@ pub struct DetectionArray {
 
 impl RosMessage for DetectionArray {
     fn topic_type() -> &'static str {
-        "clankers/DetectionArray"
+        "clankeRS/DetectionArray"
     }
 
     fn serialize(&self) -> Vec<u8> {

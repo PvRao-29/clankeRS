@@ -1,6 +1,6 @@
 # Architecture
 
-clankeRS is organized as a Cargo workspace of focused crates:
+clankeRS is organized as a Cargo workspace of focused crates (package names are lowercase `clankers-*`; the product name is **clankeRS** — see [naming.md](naming.md)):
 
 | Crate | Responsibility |
 |-------|----------------|
@@ -12,7 +12,7 @@ clankeRS is organized as a Cargo workspace of focused crates:
 | `clankers-ml` | ONNX inference and model validation |
 | `clankers-tensor` | Image and point cloud preprocessing |
 | `clankers-testing` | Replay-based test framework |
-| `clankers-macros` | `#[clankers::node]` and `#[clankers::replay_test]` |
+| `clankers-macros` | clankeRS proc macros: `#[clankers::node]`, `#[clankers::replay_test]` |
 | `clankers-geometry` | Poses, transforms, twists |
 | `clankers-runtime` | Metrics, deadlines, queue depth |
 

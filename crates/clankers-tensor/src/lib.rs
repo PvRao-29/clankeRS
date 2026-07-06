@@ -1,4 +1,4 @@
-//! Robotics-focused tensor and buffer utilities.
+//! Robotics-focused tensor utilities for clankeRS.
 
 pub mod image;
 pub mod layout;

@@ -13,7 +13,7 @@ qos = "sensor_data"
 
 [topics.output.detections]
 name = "/detections"
-type = "clankers/DetectionArray"
+type = "clankeRS/DetectionArray"
 qos = "default"
 
 [model.detector]

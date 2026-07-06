@@ -1,5 +1,12 @@
 # Getting Started
 
+## Clone the repo
+
+```bash
+git clone https://github.com/PvRao-29/clankeRS.git
+cd clankeRS
+```
+
 ## Install
 
 ```bash

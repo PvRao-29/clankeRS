@@ -10,7 +10,7 @@ async fn main() -> RobotResult<()> {
     clankers::runtime::init_tracing();
 
     let ctx = RobotContext::from_work_dir(".")
-        .unwrap_or_else(|_| RobotContext::new(ClankersConfig::default(), "."));
+        .unwrap_or_else(|_| RobotContext::new(ClankeRSConfig::default(), "."));
 
     let node = RobotNode::new(ctx.node_name().as_str()).await?;
     let mut camera = node

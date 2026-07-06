@@ -1,4 +1,4 @@
-//! ML inference and model deployment layer.
+//! ML inference and model deployment for clankeRS.
 
 pub mod backend;
 pub mod model;
