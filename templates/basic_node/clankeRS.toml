@@ -1,0 +1,22 @@
+[project]
+name = "{{PROJECT_NAME}}"
+version = "0.1.0"
+
+[node]
+name = "{{PROJECT_NAME}}"
+runtime = "async"
+
+[topics.input.chatter]
+name = "/chatter"
+type = "std_msgs/String"
+qos = "default"
+
+[topics.output.chatter]
+name = "/chatter_out"
+type = "std_msgs/String"
+qos = "default"
+
+[logging]
+level = "info"
+record_mcap = false
+output_dir = "logs/"

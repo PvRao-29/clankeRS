@@ -1,0 +1,15 @@
+{
+  "name": "clankeRS",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rust-lang.rust-analyzer"
+      ]
+    }
+  },
+  "postCreateCommand": "cargo build --workspace",
+  "remoteUser": "vscode"
+}

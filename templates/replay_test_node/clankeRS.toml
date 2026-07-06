@@ -1,0 +1,13 @@
+[project]
+name = "{{PROJECT_NAME}}"
+
+[node]
+name = "{{PROJECT_NAME}}"
+
+[replay]
+default_log = "test_data/camera_sample.mcap"
+deterministic = true
+
+[testing]
+max_latency_ms = 20
+allow_dropped_messages = false
