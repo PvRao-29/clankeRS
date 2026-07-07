@@ -141,21 +141,14 @@ impl RobotNode {
                         // Real sensor_msgs/Image -> ImageMsg -> JSON bytes.
                         let _ = tx.send(bridge::image::from_ros(&msg).serialize());
                     })
-                    .map_err(|e| {
-                        RobotError::Other(format!("create_subscription {topic}: {e}"))
-                    })?,
+                    .map_err(|e| RobotError::Other(format!("create_subscription {topic}: {e}")))?,
             ),
             WireType::StringJson => WireSubscription::Str(
                 self.node
-                    .create_subscription::<RosString, _>(
-                        topic.qos(qos),
-                        move |msg: RosString| {
-                            let _ = tx.send(msg.data.into_bytes());
-                        },
-                    )
-                    .map_err(|e| {
-                        RobotError::Other(format!("create_subscription {topic}: {e}"))
-                    })?,
+                    .create_subscription::<RosString, _>(topic.qos(qos), move |msg: RosString| {
+                        let _ = tx.send(msg.data.into_bytes());
+                    })
+                    .map_err(|e| RobotError::Other(format!("create_subscription {topic}: {e}")))?,
             ),
         };
         Ok(Subscriber {
@@ -201,12 +194,14 @@ impl<M: RosMessage> Publisher<M> {
             WirePublisher::Image(publisher) => {
                 // Invariant: `wire_type() == Image` is implemented only by
                 // `ImageMsg`, so this downcast always succeeds.
-                let img = (&msg as &dyn Any).downcast_ref::<ImageMsg>().ok_or_else(|| {
-                    RobotError::Other(format!(
-                        "topic {} uses WireType::Image but message is not ImageMsg",
-                        self.topic
-                    ))
-                })?;
+                let img = (&msg as &dyn Any)
+                    .downcast_ref::<ImageMsg>()
+                    .ok_or_else(|| {
+                        RobotError::Other(format!(
+                            "topic {} uses WireType::Image but message is not ImageMsg",
+                            self.topic
+                        ))
+                    })?;
                 publisher
                     .publish(&bridge::image::to_ros(img))
                     .map_err(|e| RobotError::Other(format!("publish {}: {e}", self.topic)))?;
