@@ -3,7 +3,6 @@
 use std::time::Instant;
 
 use clankers::prelude::*;
-#[cfg(not(feature = "ros2"))]
 use clankers::ros2::inject_message;
 
 #[tokio::main]
@@ -36,10 +35,9 @@ async fn main() -> RobotResult<()> {
         tracing::warn!("no model configured — using dummy detections");
     }
 
-    // Sim backend only: feed the node synthetic frames on the in-memory bus.
-    // Under `--features ros2` the images arrive over DDS from a real publisher
-    // on /camera/image_raw, so no injection point exists (or is wanted).
-    #[cfg(not(feature = "ros2"))]
+    // Sim backend: feed the node synthetic frames on the in-memory bus. The
+    // real-DDS equivalent (ros2/) instead receives images over DDS from a real
+    // publisher on /camera/image_raw, so it has no such injection point.
     tokio::spawn(async {
         for i in 0..10u32 {
             let w = 320u32;

@@ -1,0 +1,46 @@
+[package]
+name = "clankers-ros2-dds"
+description = "Real rclrs/DDS backend for clankeRS (colcon build only)"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/PvRao-29/clankeRS"
+authors = ["Pranshu Rao"]
+publish = false
+
+# This package is NOT a member of the main Cargo workspace (it is listed under
+# `[workspace] exclude` in the root Cargo.toml). It can only be *built* inside a
+# colcon ROS 2 workspace (see ros2/README.md and docs/ros2_integration.md),
+# because:
+#   * the ROS message crates below are yanked/absent on crates.io — colcon-ros-cargo
+#     injects the generated ones from `package.xml`'s <depend> entries; and
+#   * crates.io `rclrs 0.7` is API-incompatible with the ros2-rust git rclrs that
+#     colcon builds, so ros2_ws/.cargo/config.toml redirects it via
+#     `[patch.crates-io.rclrs]`.
+# Plain `cargo build` from the repo root never touches this package, so CI and the
+# golden path stay ROS-free.
+
+[dependencies]
+# Shared, ROS-free message/QoS types from the main-workspace crate. Resolved by
+# cargo against the canonical repo path (../../crates/...) even when this package
+# is symlinked into ros2_ws/src/.
+clankers-ros2 = { path = "../../crates/clankers-ros2" }
+clankers-core = { path = "../../crates/clankers-core" }
+
+async-trait = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["sync", "rt", "macros", "time"] }
+tracing = "0.1"
+
+# rclrs is redirected to the ros2-rust git source by ros2_ws/.cargo/config.toml
+# ([patch.crates-io.rclrs]). The message crates are injected by colcon-ros-cargo
+# from package.xml (they are yanked on crates.io).
+rclrs = "0.7"
+sensor_msgs = "*"
+std_msgs = "*"
+builtin_interfaces = "*"
+
+[lib]
+path = "src/lib.rs"

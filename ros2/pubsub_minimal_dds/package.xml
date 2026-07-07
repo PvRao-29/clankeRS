@@ -1,17 +1,14 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <!--
-  colcon/ament manifest for building clankers-ros2 with the `ros2` feature.
-
-  colcon-ros-cargo reads these <depend> entries and injects the generated ROS
-  message crates (sensor_msgs, std_msgs, builtin_interfaces) into the cargo
-  build, so they are deliberately NOT in Cargo.toml (they are not on crates.io
-  and would break the ROS-free `cargo build`). See docs/ros2_integration.md.
+  colcon/ament manifest for the minimal real-DDS publisher example. It depends on
+  clankers-ros2-dds (a path dep, so not listed here) and, transitively, on the
+  ROS message crates that colcon-ros-cargo injects. See ros2/README.md.
 -->
 <package format="3">
-  <name>clankers-ros2</name>
+  <name>pubsub_minimal_dds</name>
   <version>0.1.0</version>
-  <description>ROS 2 (rclrs/DDS) integration layer for clankeRS</description>
+  <description>Minimal clankeRS publisher on a real ROS 2 (rclrs/DDS) graph</description>
   <maintainer email="29.pranshurao@gmail.com">Pranshu Rao</maintainer>
   <license>MIT</license>
 

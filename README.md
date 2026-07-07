@@ -6,7 +6,7 @@ clankeRS is an early-stage Rust SDK for robotics teams on ROS 2 and PyTorch. The
 
 clankeRS is **not** a ROS replacement and **not** a PyTorch replacement. It is a Rust layer on top of your existing stack.
 
-> **Honest scope today:** Pub/sub in examples uses an **in-memory simulated bus** (no ROS 2 / DDS install required). Real `rclrs`/DDS integration is written behind an off-by-default `ros2` feature but **not yet verified on a ROS box** (see the status table below). Latency numbers depend on your machine and model size — treat benchmarks as local measurements, not production guarantees.
+> **Honest scope today:** Pub/sub in the workspace examples uses an **in-memory simulated bus** (no ROS 2 / DDS install required). Real `rclrs`/DDS integration is verified against ROS 2 Humble and ships as checked-in colcon packages under [`ros2/`](ros2/) with a one-command build — it builds **only inside a colcon workspace**, not from the plain `cargo build` (see the status table below). Latency numbers depend on your machine and model size — treat benchmarks as local measurements, not production guarantees.
 
 <p align="center">
   <img src="docs/assets/camera_replay.gif" alt="clankeRS camera_replay example: MCAP log through ONNX inference with a latency report" width="680">
@@ -55,7 +55,7 @@ These paths are exercised in CI (`.github/workflows/ci.yml`) from a fresh clone 
 
 | Area | Status |
 |------|--------|
-| Real ROS 2 (DDS) via `rclrs` | Backend **compiled and run against ROS 2 Humble** (in `.devcontainer`, arm64): `ImageMsg` verified as real `sensor_msgs/msg/Image` via `ros2 topic echo`; `DetectionArray` on `std_msgs/String` JSON. Builds **only inside a colcon `ros2_ws/`** (message crates are yanked on crates.io; `rclrs` needs the git source), so it isn't a plain `--features ros2` build yet — see [docs/ros2_integration.md](docs/ros2_integration.md) |
+| Real ROS 2 (DDS) via `rclrs` | Backend **compiled and run against ROS 2 Humble** (in `.devcontainer`, arm64): `ImageMsg` verified as real `sensor_msgs/msg/Image` via `ros2 topic echo`; `DetectionArray` on `std_msgs/String` JSON. Now shipped as **checked-in colcon packages** under [`ros2/`](ros2/) with a one-command build (`scripts/setup_ros2_ws.sh`). Builds **only inside a colcon `ros2_ws/`** (message crates are yanked on crates.io; `rclrs` needs the git source), never from the plain `cargo build` — see [docs/ros2_integration.md](docs/ros2_integration.md) |
 | `clankers record` | Stub — prints a hint; MCAP recording from `clankers run` is incomplete |
 | `clankers visualize` | Prints MCAP summary + Foxglove/Rerun pointers; no live bridge |
 | Live PyTorch at validate time | Not implemented — validation uses committed `expected_output.json` files |
@@ -156,7 +156,7 @@ This exports two small deterministic PyTorch models to ONNX and writes `expected
 
 - [Getting started](docs/getting_started.md)
 - [Installation](docs/installation.md)
-- [ROS 2 integration](docs/ros2_integration.md) — sim bus today, real DDS planned
+- [ROS 2 integration](docs/ros2_integration.md) — sim bus + real rclrs/DDS colcon packages ([`ros2/`](ros2/))
 - [PyTorch to ONNX](docs/pytorch_to_onnx.md)
 - [Model validation](docs/model_validation.md)
 - [MCAP replay](docs/mcap_replay.md)

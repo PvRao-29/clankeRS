@@ -1,0 +1,20 @@
+[package]
+name = "pubsub_minimal_dds"
+description = "Minimal clankeRS publisher on a real ROS 2 (rclrs/DDS) graph"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+publish = false
+
+# Excluded from the main Cargo workspace (see root Cargo.toml `[workspace]
+# exclude`). Built by colcon inside ros2_ws/ — see ros2/README.md.
+
+[dependencies]
+clankers-ros2-dds = { path = "../clankers-ros2-dds" }
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[[bin]]
+name = "pubsub_minimal_dds"
+path = "src/main.rs"

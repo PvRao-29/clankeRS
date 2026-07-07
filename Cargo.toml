@@ -15,6 +15,14 @@ members = [
     "examples/ros2_pubsub_minimal",
     "examples/camera_perception_node",
 ]
+# The real rclrs/DDS packages live under ros2/ and are built by colcon inside a
+# ROS workspace (see docs/ros2_integration.md), never by `cargo build`. They are
+# excluded so they resolve as standalone packages (their ROS message-crate deps
+# are yanked on crates.io and would break the ROS-free workspace build).
+exclude = [
+    "ros2/clankers-ros2-dds",
+    "ros2/pubsub_minimal_dds",
+]
 default-members = ["crates/clankers-cli", "crates/clankers"]
 
 [workspace.package]

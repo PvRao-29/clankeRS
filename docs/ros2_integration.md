@@ -1,15 +1,15 @@
 # ROS 2 Integration
 
-clankeRS talks to ROS 2 through the `clankers-ros2` crate, which has **two
-backends behind one API** selected at compile time:
+clankeRS has **two ROS 2 backends behind one API**:
 
-| Backend | Feature | Needs ROS install? | Used by |
-|---------|---------|--------------------|---------|
-| Simulated in-memory bus | `sim` (default) | No | CI, `cargo build`, all examples/tests |
-| Real rclrs / DDS | `ros2` | **Yes** (+ colcon) | Live robots, `ros2 topic` interop |
+| Backend | Where it lives | Needs ROS install? | Used by |
+|---------|----------------|--------------------|---------|
+| Simulated in-memory bus | `clankers-ros2` crate (main workspace) | No | CI, `cargo build`, all examples/tests |
+| Real rclrs / DDS | `ros2/clankers-ros2-dds` (colcon package) | **Yes** (+ colcon) | Live robots, `ros2 topic` interop |
 
-`RobotNode`, `Publisher`, `Subscriber` are identical across both — only the
-transport changes.
+`clankers-ros2` also holds the shared, transport-agnostic message/QoS types that
+both backends use. `RobotNode`, `Publisher`, `Subscriber` are identical across
+both — only the transport changes.
 
 ```rust
 use clankers::prelude::*;
@@ -27,28 +27,53 @@ Pub/sub is an in-memory broadcast bus; messages are serialized as JSON.
 
 ## Real ROS 2 (rclrs) — status
 
-> **Status: compiled and run against real ROS 2 Humble (DDS).** On 2026-07-07 the
-> backend ([`rclrs_backend.rs`](../crates/clankers-ros2/src/rclrs_backend.rs)) and
-> the `sensor_msgs/Image` bridge ([`bridge/image.rs`](../crates/clankers-ros2/src/bridge/image.rs))
-> were built inside the [`.devcontainer`](../.devcontainer) image (Ubuntu 22.04 +
-> Humble, arm64) against the colcon-generated **rclrs 0.7** and **sensor_msgs 4.9.1**
-> crates, and exercised over live DDS:
+> **Status: the one-command build + live DDS smoke test pass end-to-end in the
+> devcontainer** (Ubuntu 22.04 + Humble, arm64; verified 2026-07-07 against the
+> colcon-generated **rclrs 0.7** and **sensor_msgs 4.9.1** crates).
 >
-> * `ImageMsg` publishes/subscribes as a real `sensor_msgs/msg/Image` — confirmed
->   with `ros2 topic type` / `ros2 topic echo` from a stock ROS node (typed
->   `height`/`width`/`encoding`/`step`/`data`, **not** a JSON string).
-> * `DetectionArray` round-trips over the `std_msgs/String` JSON path.
-> * The "subscriptions created after `executor.spin()` starts" ordering (see
->   `RobotNode::new`) **does** deliver — messages flow. (One benign
->   `cannot publish data … rmw_publish.cpp` line can print at process exit because
->   the detached executor thread is still spinning during context teardown; a
->   graceful shutdown/`Drop` is a follow-up polish item.)
+> Running `bash scripts/setup_ros2_ws.sh` builds the two checked-in colcon
+> packages — [`ros2/clankers-ros2-dds`](../ros2/clankers-ros2-dds) (the rclrs/DDS
+> backend) and [`ros2/pubsub_minimal_dds`](../ros2/pubsub_minimal_dds) (a minimal
+> publisher) — and then:
+>
+> * `pubsub_minimal_dds` publishes on `/camera/image_raw`, and stock ROS tooling
+>   confirms `ros2 topic type` → `sensor_msgs/msg/Image` and `ros2 topic echo`
+>   shows the typed `header`/`height`/`width`/`encoding`/`step`/`data` fields
+>   (**not** a JSON string) — full external DDS interop.
+> * `DetectionArray` rides the `std_msgs/String` JSON path.
+> * Ctrl-C exits cleanly in ~100 ms with **no** `rmw_publish.cpp` teardown
+>   warning (see the `Drop` note below).
+>
+> **Graceful shutdown.** The executor thread spins in bounded 100 ms slices,
+> polling a stop flag between them. `RobotNode`'s `Drop` sets the flag, wakes any
+> in-progress slice (`ExecutorCommands::halt_spinning`), then joins the thread
+> before the DDS context is torn down. The bounded slices are load-bearing: a
+> plain `spin()` with no timeout never returns on live Humble DDS (even
+> `halt_spinning()` does not release it), which would otherwise hang the process
+> on exit.
 >
 > **Rust toolchain:** rclrs 0.7 needs Rust ≥ 1.85 (the devcontainer ships current
-> stable, 1.96 at time of writing). The repo's `rust-toolchain.toml` floats on
-> `stable`, so the sim/golden path tracks current stable.
+> stable). The repo's `rust-toolchain.toml` floats on `stable`, so the sim/golden
+> path tracks current stable.
+>
+> **Rust toolchain:** rclrs 0.7 needs Rust ≥ 1.85 (the devcontainer ships current
+> stable). The repo's `rust-toolchain.toml` floats on `stable`, so the sim/golden
+> path tracks current stable.
 
-### Why the `ros2` feature only builds inside the colcon workspace
+### Architecture: shared core + a separate DDS package
+
+The `clankers-ros2` crate in the main Cargo workspace is now the **ROS-free shared
+core**: the in-memory sim backend plus the transport-agnostic `message`/`qos`
+types. Plain `cargo build` compiles it with no ROS install.
+
+The real DDS backend is **not** in the workspace. It is the checked-in colcon
+package [`ros2/clankers-ros2-dds`](../ros2/clankers-ros2-dds), which path-depends on
+`clankers-ros2` for the shared types and re-exports the same
+`RobotNode`/`Publisher`/`Subscriber` API. This split is what lets the ROS-free
+`cargo build --workspace` stay green while the DDS backend carries the yanked
+message-crate deps — see the next section.
+
+### Why the DDS backend is a separate colcon package (not a `cargo` feature)
 
 Two crates.io realities force this — both found the hard way:
 
@@ -65,79 +90,60 @@ Two crates.io realities force this — both found the hard way:
    package must therefore add a `[patch.crates-io] rclrs = { path = ".../ros2_rust/rclrs" }`
    (the generated config does **not** patch `rclrs`).
 
-Consequently the backend cannot be compiled from the main Cargo workspace with a
-plain `cargo build -p clankers-ros2 --features ros2` — the message-crate deps it
-needs can't be declared there without breaking the golden path. It must be built
-as a package **inside `ros2_ws/`**, where the patch config applies. See
-"Reference build" below.
+Consequently the backend cannot be a `--features ros2` build of a main-workspace
+crate — the message-crate deps it needs can't be declared anywhere the workspace
+resolves without breaking the golden path. So it is a standalone package under
+`ros2/` (listed in the root `Cargo.toml` `[workspace] exclude`) that is built by
+colcon **inside `ros2_ws/`**, where the patch config applies. See the build steps
+below.
 
-### Build steps (Ubuntu 22.04 + ROS 2 Humble)
+### Build steps (Ubuntu 22.04 + ROS 2 Humble, or the repo `.devcontainer/`)
+
+One command bootstraps the ros2-rust workspace, wires in the checked-in `ros2/`
+packages, and builds the minimal publisher:
 
 ```bash
 # 1. Install ROS 2 Humble (ros-humble-ros-base) — or use .devcontainer/ (recommended;
-#    it now installs colcon-common-extensions and builds non-interactively).
+#    it installs colcon-common-extensions and builds non-interactively).
 sudo apt install ros-humble-ros-base python3-vcstool libclang-dev
 
-# 2. Bootstrap the ros2-rust workspace (generates rclrs + std_msgs/sensor_msgs/... crates
-#    and ros2_ws/.cargo/config.toml with the [patch.crates-io] entries).
+# 2. Bootstrap + build (from the repo root). This:
+#      * clones ros2-rust and builds rclrs + std_msgs/sensor_msgs/... crates,
+#      * adds the [patch.crates-io.rclrs] entry the generated config omits,
+#      * symlinks ros2/clankers-ros2-dds and ros2/pubsub_minimal_dds into ros2_ws/src/,
+#      * writes ros2/.cargo/config.toml (absolute patch paths — see note below),
+#      * colcon-builds pubsub_minimal_dds.
 source /opt/ros/humble/setup.bash
 bash scripts/setup_ros2_ws.sh
-
-# 3. Add the rclrs patch the generated config omits, then build a package that
-#    lives *inside* ros2_ws/ (so it picks up ros2_ws/.cargo/config.toml).
-cat >> ros2_ws/.cargo/config.toml <<'EOF'
-
-[patch.crates-io.rclrs]
-path = "src/ros2_rust/rclrs"
-EOF
 ```
 
-> **Note (packaging is still open):** wiring `clankers-ros2` itself into `ros2_ws/`
-> as an `ament_cargo` package (or splitting the DDS backend into its own crate that
-> lives there) is the remaining task — the current `clankers-ros2` is a member of
-> the main Cargo workspace and can't carry the message-crate deps. The verification
-> that the backend *code* is correct was done with a small harness crate placed in
-> `ros2_ws/src/` that `#[path]`-includes the real backend source; see below.
-
-### Reference build (what was actually verified)
-
-Because `clankers-ros2` isn't wired into `ros2_ws/` yet, the backend was verified
-with a small harness crate under `ros2_ws/src/` that pulls the **real** backend
-source in via `#[path]` and builds it against the colcon crates:
-
-```toml
-# ros2_ws/src/<harness>/Cargo.toml
-[dependencies]
-rclrs = "0.7"                       # redirected to the git rclrs by the patch above
-std_msgs = "*"
-sensor_msgs = "*"
-builtin_interfaces = "*"
-# + async-trait, serde, serde_json, tokio, tracing, thiserror
-# + a tiny clankers-core shim providing RobotError / RobotResult / Timestamp
-```
-
-```rust
-// src/lib.rs — compile the real files verbatim
-#[path = ".../clankers-ros2/src/qos.rs"]           pub mod qos;
-#[path = ".../clankers-ros2/src/message.rs"]       pub mod message;
-pub mod bridge { #[path = ".../bridge/image.rs"]   pub mod image; }
-#[path = ".../clankers-ros2/src/rclrs_backend.rs"] pub mod rclrs_backend;
-```
+### Smoke test (typed `sensor_msgs/Image` over DDS)
 
 ```bash
-source /opt/ros/humble/setup.bash
-cd ros2_ws/src/<harness> && cargo build      # compiles against rclrs 0.7 + sensor_msgs 4.9.1
-./target/debug/<pub-bin> &                   # publishes ImageMsg on a topic
+source ros2_ws/install/setup.bash
+ros2 run pubsub_minimal_dds pubsub_minimal_dds &
 
-# Confirm the wire type from a stock ROS node:
-ros2 topic type /verify/image                # -> sensor_msgs/msg/Image
-ros2 topic echo /verify/image                # -> header/height/width/encoding/step/data
+# From a second sourced shell:
+ros2 topic type /camera/image_raw     # -> sensor_msgs/msg/Image
+ros2 topic echo /camera/image_raw     # -> typed header/height/width/encoding/step/data
 ```
 
-This is exactly how the 2026-07-07 verification was run (see the status note
-above). Once `clankers-ros2` is packaged into `ros2_ws/`, the intended end-user
-smoke test is `cargo run -p ros2_pubsub_minimal` + `ros2 topic echo
-/camera/image_raw`.
+A stock `ros2 topic echo` showing structured image fields (not a JSON string)
+confirms external DDS interop. Ctrl-C returns cleanly (graceful `Drop`).
+
+> **Note (patch-config discovery).** The `ros2/` packages are checked in but
+> symlinked into `ros2_ws/src/` at setup time. At build time cargo canonicalizes
+> the symlinked working directory back to `ros2/<pkg>`, so it would miss
+> `ros2_ws/.cargo/config.toml`. The setup script therefore also writes
+> `ros2/.cargo/config.toml` with the same `[patch.crates-io]` entries using
+> **absolute** paths into `ros2_ws/`, discovered from the canonical package
+> location. Both configs are generated and git-ignored. See
+> [`ros2/README.md`](../ros2/README.md).
+
+> **Historical note.** Before the packages were checked in, the 2026-07-07
+> verification used a throwaway harness crate under `ros2_ws/src/` that
+> `#[path]`-included the backend source. That harness is superseded by
+> `ros2/pubsub_minimal_dds`.
 
 ### Transport note
 
@@ -145,7 +151,7 @@ The wire type is chosen per message by `RosMessage::wire_type()`:
 
 | clankeRS type | ROS 2 wire type | Interop |
 |---------------|-----------------|---------|
-| `ImageMsg` | `sensor_msgs/Image` (via [`bridge/image.rs`](../crates/clankers-ros2/src/bridge/image.rs)) | ✅ stock ROS nodes, Foxglove, bag play |
+| `ImageMsg` | `sensor_msgs/Image` (via [`bridge/image.rs`](../ros2/clankers-ros2-dds/src/bridge/image.rs)) | ✅ stock ROS nodes, Foxglove, bag play |
 | `DetectionArray` (and any other type) | `std_msgs/String` holding JSON | ⚠️ clankeRS ↔ clankeRS only |
 
 `ImageMsg` publishes/subscribes as a real typed `sensor_msgs/Image`, so

@@ -21,3 +21,4 @@ TASK.md
 .claude/
 docs/ISSUES.md
 ros2_ws/
+ros2/.cargo/

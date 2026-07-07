@@ -1,10 +1,10 @@
 //! `ImageMsg` <-> `sensor_msgs/msg/Image` conversion.
 //!
-//! Compiled only under `--features ros2`. The ROS types come from the colcon
-//! overlay (`sensor_msgs`, `std_msgs`, `builtin_interfaces`), declared in
-//! `package.xml`.
+//! The ROS types come from the colcon overlay (`sensor_msgs`, `std_msgs`,
+//! `builtin_interfaces`), declared in `package.xml`. `ImageMsg` is the shared
+//! type from the [`clankers_ros2`] core crate.
 
-use crate::message::ImageMsg;
+use clankers_ros2::message::ImageMsg;
 
 const NANOS_PER_SEC: u64 = 1_000_000_000;
 

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<!--
+  colcon/ament manifest for the real rclrs/DDS backend.
+
+  colcon-ros-cargo reads these <depend> entries and injects the generated ROS
+  message crates (rclrs, sensor_msgs, std_msgs, builtin_interfaces) into the
+  cargo build, so they are declared here rather than resolved from crates.io
+  (where they are yanked). The path dependency on `clankers-ros2` (the shared
+  ROS-free core) is a plain cargo path dep, not an ament package, so it is not
+  listed here. See docs/ros2_integration.md.
+-->
+<package format="3">
+  <name>clankers-ros2-dds</name>
+  <version>0.1.0</version>
+  <description>Real ROS 2 (rclrs/DDS) backend for clankeRS</description>
+  <maintainer email="29.pranshurao@gmail.com">Pranshu Rao</maintainer>
+  <license>MIT</license>
+
+  <depend>rclrs</depend>
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>builtin_interfaces</depend>
+
+  <export>
+    <build_type>ament_cargo</build_type>
+  </export>
+</package>

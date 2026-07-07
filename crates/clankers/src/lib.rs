@@ -12,9 +12,9 @@ pub use clankers_ml::{Model, ModelBuilder, ModelValidator, ValidationReport};
 pub use clankers_ros2::{
     Detection, DetectionArray, ImageMsg, Publisher, QosProfile, RobotNode, Subscriber,
 };
-// `inject_message` is a sim-only helper for replay (feeding the in-memory bus).
-// The `ros2` backend has no such injection point — messages arrive over DDS.
-#[cfg(not(feature = "ros2"))]
+// `inject_message` feeds the in-memory sim bus (used by replay). The `clankers`
+// crate always uses the sim backend; the real rclrs/DDS backend is a separate
+// colcon package (ros2/clankers-ros2-dds) where messages arrive over DDS.
 pub use clankers_ros2::inject_message;
 pub use clankers_runtime::{RobotRuntime, RuntimeMetrics};
 pub use clankers_tensor::ImageTensor;

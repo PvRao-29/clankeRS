@@ -9,7 +9,5 @@ clankers = { path = "../../crates/clankers" }
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
 
-[features]
-# Build against a real ROS 2 graph (colcon only):
-#   cargo build -p ros2_pubsub_minimal --features ros2
-ros2 = ["clankers/ros2"]
+# This example uses the in-memory sim bus. The real-DDS equivalent is the colcon
+# package ros2/pubsub_minimal_dds (see docs/ros2_integration.md).
