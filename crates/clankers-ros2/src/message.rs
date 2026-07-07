@@ -1,10 +1,37 @@
 use async_trait::async_trait;
 use serde::Serialize;
 
+/// ROS 2 wire representation a [`RosMessage`] maps to on the `rclrs`/DDS backend.
+///
+/// The default ([`WireType::StringJson`]) carries the message as a
+/// `std_msgs/String` holding its JSON, which works generically for any type. A
+/// message that has a native ROS 2 equivalent overrides
+/// [`RosMessage::wire_type`] so the backend publishes/subscribes the real typed
+/// message (e.g. `sensor_msgs/Image`), giving wire-compatibility with stock ROS
+/// nodes (`ros2 topic echo`, Foxglove, `v4l2_camera`, bag play).
+///
+/// Only the `ros2` backend reads this; the `sim` backend ignores it (everything
+/// is JSON on the in-memory bus).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WireType {
+    /// `std_msgs/String` envelope holding the message JSON (default transport).
+    StringJson,
+    /// `sensor_msgs/Image`, via the typed bridge in [`crate::bridge::image`].
+    Image,
+}
+
 /// Trait for ROS-compatible messages used by clankeRS.
 #[async_trait]
 pub trait RosMessage: Clone + Send + Sync + 'static {
     fn topic_type() -> &'static str;
+
+    /// ROS 2 wire type used by the `rclrs`/DDS backend. Defaults to a
+    /// `std_msgs/String` JSON envelope; override for types with a native ROS 2
+    /// message (see [`WireType`]).
+    fn wire_type() -> WireType {
+        WireType::StringJson
+    }
+
     fn serialize(&self) -> Vec<u8>;
     fn deserialize(data: &[u8]) -> Result<Self, String>
     where
@@ -40,6 +67,12 @@ impl ImageMsg {
 impl RosMessage for ImageMsg {
     fn topic_type() -> &'static str {
         "sensor_msgs/Image"
+    }
+
+    /// Published as a real `sensor_msgs/Image` on the `ros2` backend (not a JSON
+    /// string), so stock ROS nodes can consume it directly.
+    fn wire_type() -> WireType {
+        WireType::Image
     }
 
     fn serialize(&self) -> Vec<u8> {

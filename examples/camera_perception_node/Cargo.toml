@@ -8,3 +8,10 @@ publish = false
 clankers = { path = "../../crates/clankers" }
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
+
+[features]
+# Run against a real ROS 2 graph (colcon only). Without this feature the node
+# feeds itself synthetic frames on the sim bus; with it, it waits for a real
+# publisher on /camera/image_raw. See docs/ros2_integration.md.
+#   cargo run -p camera_perception_node --features ros2
+ros2 = ["clankers/ros2"]

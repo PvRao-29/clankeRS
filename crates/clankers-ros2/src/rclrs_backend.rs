@@ -24,25 +24,41 @@
 //!
 //! # Transport
 //!
-//! For the MVP, every clankeRS message is carried as `std_msgs/String` holding
-//! the message's JSON (via [`RosMessage::serialize`]/[`RosMessage::deserialize`]).
-//! This makes the backend generic over any `M: RosMessage` without per-type
-//! wiring. Typed `sensor_msgs/Image` bridging (see [`crate::bridge::image`]) is
-//! the next step for wire-compatibility with stock ROS nodes.
+//! The wire type is chosen per message via [`RosMessage::wire_type`]:
+//!
+//! * [`WireType::Image`] (e.g. [`ImageMsg`]) is published/subscribed as a real
+//!   `sensor_msgs/Image` through the typed bridge in [`crate::bridge::image`],
+//!   so stock ROS nodes (`ros2 topic echo`, Foxglove, `v4l2_camera`, bag play)
+//!   interoperate directly.
+//! * [`WireType::StringJson`] (the default, used by `DetectionArray` until it
+//!   gets a custom `.msg`) is carried as `std_msgs/String` holding the message
+//!   JSON. This keeps the backend generic over any `M: RosMessage` with no
+//!   per-type wiring.
+//!
+//! Dispatch is a runtime `match` on `M::wire_type()`; the typed arm recovers the
+//! concrete `ImageMsg` by downcasting (`wire_type() == Image` is only ever
+//! implemented by `ImageMsg`). Internally the subscriber channel always carries
+//! clankeRS JSON bytes, so `Subscriber::next` stays uniform — a typed image is
+//! converted to [`ImageMsg`] in the DDS callback before being queued.
 
+use std::any::Any;
 use std::marker::PhantomData;
 use std::thread::JoinHandle;
 
 use tokio::sync::mpsc;
 
 use clankers_core::{RobotError, RobotResult};
-// `IntoPrimitiveOptions` brings the `.qos(..)` combinator on topic names into scope.
-use rclrs::IntoPrimitiveOptions;
+// Trait imports for methods rclrs attaches via extension traits:
+// * `CreateBasicExecutor` -> `Context::create_basic_executor`
+// * `IntoPrimitiveOptions` -> the `.qos(..)` combinator on topic names
+use rclrs::{CreateBasicExecutor, IntoPrimitiveOptions};
 
-use crate::message::RosMessage;
+use crate::bridge;
+use crate::message::{ImageMsg, RosMessage, WireType};
 use crate::qos::{Durability, QosProfile, Reliability};
 
 // Provided by the colcon overlay (declared in package.xml).
+use sensor_msgs::msg::Image as RosImage;
 use std_msgs::msg::String as RosString;
 
 /// ROS 2 node handle backed by an rclrs executor thread.
@@ -87,12 +103,21 @@ impl RobotNode {
         topic: &str,
         qos: QosProfile,
     ) -> RobotResult<Publisher<M>> {
-        let publisher = self
-            .node
-            .create_publisher::<RosString>(topic.qos(to_rclrs_qos(qos)))
-            .map_err(|e| RobotError::Other(format!("create_publisher {topic}: {e}")))?;
+        let qos = to_rclrs_qos(qos);
+        let wire = match M::wire_type() {
+            WireType::Image => WirePublisher::Image(
+                self.node
+                    .create_publisher::<RosImage>(topic.qos(qos))
+                    .map_err(|e| RobotError::Other(format!("create_publisher {topic}: {e}")))?,
+            ),
+            WireType::StringJson => WirePublisher::Str(
+                self.node
+                    .create_publisher::<RosString>(topic.qos(qos))
+                    .map_err(|e| RobotError::Other(format!("create_publisher {topic}: {e}")))?,
+            ),
+        };
         Ok(Publisher {
-            publisher,
+            wire,
             topic: topic.to_string(),
             _marker: PhantomData,
         })
@@ -103,18 +128,36 @@ impl RobotNode {
         topic: &str,
         qos: QosProfile,
     ) -> RobotResult<Subscriber<M>> {
+        // The channel always carries clankeRS JSON bytes so `next()` can decode
+        // uniformly via `M::deserialize`, regardless of the DDS wire type.
         let (tx, rx) = mpsc::unbounded_channel::<Vec<u8>>();
+        let qos = to_rclrs_qos(qos);
         // Node subscription callbacks are `Fn(T) + Send + Sync`; an mpsc sender
         // satisfies that and hands the bytes to the async `next()` side.
-        let subscription = self
-            .node
-            .create_subscription::<RosString, _>(
-                topic.qos(to_rclrs_qos(qos)),
-                move |msg: RosString| {
-                    let _ = tx.send(msg.data.into_bytes());
-                },
-            )
-            .map_err(|e| RobotError::Other(format!("create_subscription {topic}: {e}")))?;
+        let subscription = match M::wire_type() {
+            WireType::Image => WireSubscription::Image(
+                self.node
+                    .create_subscription::<RosImage, _>(topic.qos(qos), move |msg: RosImage| {
+                        // Real sensor_msgs/Image -> ImageMsg -> JSON bytes.
+                        let _ = tx.send(bridge::image::from_ros(&msg).serialize());
+                    })
+                    .map_err(|e| {
+                        RobotError::Other(format!("create_subscription {topic}: {e}"))
+                    })?,
+            ),
+            WireType::StringJson => WireSubscription::Str(
+                self.node
+                    .create_subscription::<RosString, _>(
+                        topic.qos(qos),
+                        move |msg: RosString| {
+                            let _ = tx.send(msg.data.into_bytes());
+                        },
+                    )
+                    .map_err(|e| {
+                        RobotError::Other(format!("create_subscription {topic}: {e}"))
+                    })?,
+            ),
+        };
         Ok(Subscriber {
             rx,
             _subscription: subscription,
@@ -128,9 +171,15 @@ impl RobotNode {
     }
 }
 
+/// Concrete rclrs publisher chosen by [`RosMessage::wire_type`].
+/// `rclrs::Publisher<T>` is `Arc<PublisherState<T>>`.
+enum WirePublisher {
+    Str(rclrs::Publisher<RosString>),
+    Image(rclrs::Publisher<RosImage>),
+}
+
 pub struct Publisher<M> {
-    // `rclrs::Publisher<T>` is `Arc<PublisherState<T>>`.
-    publisher: rclrs::Publisher<RosString>,
+    wire: WirePublisher,
     topic: String,
     _marker: PhantomData<M>,
 }
@@ -141,20 +190,43 @@ impl<M: RosMessage> Publisher<M> {
     }
 
     pub async fn publish(&self, msg: M) -> RobotResult<()> {
-        let json = String::from_utf8(msg.serialize())
-            .map_err(|e| RobotError::Other(format!("message not utf-8: {e}")))?;
-        self.publisher
-            .publish(&RosString { data: json })
-            .map_err(|e| RobotError::Other(format!("publish {}: {e}", self.topic)))?;
+        match &self.wire {
+            WirePublisher::Str(publisher) => {
+                let json = String::from_utf8(msg.serialize())
+                    .map_err(|e| RobotError::Other(format!("message not utf-8: {e}")))?;
+                publisher
+                    .publish(&RosString { data: json })
+                    .map_err(|e| RobotError::Other(format!("publish {}: {e}", self.topic)))?;
+            }
+            WirePublisher::Image(publisher) => {
+                // Invariant: `wire_type() == Image` is implemented only by
+                // `ImageMsg`, so this downcast always succeeds.
+                let img = (&msg as &dyn Any).downcast_ref::<ImageMsg>().ok_or_else(|| {
+                    RobotError::Other(format!(
+                        "topic {} uses WireType::Image but message is not ImageMsg",
+                        self.topic
+                    ))
+                })?;
+                publisher
+                    .publish(&bridge::image::to_ros(img))
+                    .map_err(|e| RobotError::Other(format!("publish {}: {e}", self.topic)))?;
+            }
+        }
         Ok(())
     }
 }
 
+/// Concrete rclrs subscription chosen by [`RosMessage::wire_type`].
+/// `rclrs::Subscription<T>` is `Arc<SubscriptionState<T>>`.
+enum WireSubscription {
+    Str(rclrs::Subscription<RosString>),
+    Image(rclrs::Subscription<RosImage>),
+}
+
 pub struct Subscriber<M> {
     rx: mpsc::UnboundedReceiver<Vec<u8>>,
-    // Held so the rclrs subscription (`Arc<SubscriptionState>`) is not dropped
-    // while we poll.
-    _subscription: rclrs::Subscription<RosString>,
+    // Held so the rclrs subscription is not dropped while we poll.
+    _subscription: WireSubscription,
     topic: String,
     _marker: PhantomData<M>,
 }

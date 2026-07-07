@@ -26,5 +26,5 @@ pub mod rclrs_backend;
 #[cfg(feature = "ros2")]
 pub use rclrs_backend::{Publisher, RobotNode, Subscriber};
 
-pub use message::{Detection, DetectionArray, ImageMsg, RosMessage};
+pub use message::{Detection, DetectionArray, ImageMsg, RosMessage, WireType};
 pub use qos::QosProfile;

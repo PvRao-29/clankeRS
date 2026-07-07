@@ -10,9 +10,12 @@ pub use clankers_geometry::{Pose, Transform, Twist};
 pub use clankers_macros::{node, replay_test};
 pub use clankers_ml::{Model, ModelBuilder, ModelValidator, ValidationReport};
 pub use clankers_ros2::{
-    inject_message, Detection, DetectionArray, ImageMsg, Publisher, QosProfile, RobotNode,
-    Subscriber,
+    Detection, DetectionArray, ImageMsg, Publisher, QosProfile, RobotNode, Subscriber,
 };
+// `inject_message` is a sim-only helper for replay (feeding the in-memory bus).
+// The `ros2` backend has no such injection point — messages arrive over DDS.
+#[cfg(not(feature = "ros2"))]
+pub use clankers_ros2::inject_message;
 pub use clankers_runtime::{RobotRuntime, RuntimeMetrics};
 pub use clankers_tensor::ImageTensor;
 pub use clankers_testing::{

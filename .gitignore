@@ -20,3 +20,4 @@ __pycache__/
 TASK.md
 .claude/
 docs/ISSUES.md
+ros2_ws/

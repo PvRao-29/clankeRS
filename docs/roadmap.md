@@ -29,6 +29,11 @@
 
 ## v1.0 — Production-ready SDK
 - [ ] Stable public APIs
-- [ ] Full rclrs integration
+- [~] Full rclrs integration — *in progress:* backend + typed `sensor_msgs/Image`
+  bridge **compiled and run against ROS 2 Humble DDS** (verified 2026-07-07 in the
+  devcontainer; `ros2 topic echo` sees a real `sensor_msgs/msg/Image`). Remaining:
+  package `clankers-ros2` into the colcon `ros2_ws/` (message crates are yanked on
+  crates.io and `rclrs` needs the git source, so a plain `--features ros2` build
+  from the main workspace isn't possible). See [docs/ros2_integration.md](ros2_integration.md).
 - [ ] Optional LibTorch / ExecuTorch backends
 - [ ] Expanded geometry and runtime modules

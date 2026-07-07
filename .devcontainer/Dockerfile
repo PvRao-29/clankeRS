@@ -1,5 +1,11 @@
 FROM ubuntu:22.04
 
+# Build non-interactively: the ROS install pulls tzdata, which otherwise blocks
+# on an interactive "Geographic area" prompt (no TTY during image build/CI).
+# ARG (not ENV) so noninteractive applies only at build time, not at runtime.
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
 RUN apt-get update && apt-get install -y \
     curl build-essential pkg-config libssl-dev git python3 python3-pip \
     && rm -rf /var/lib/apt/lists/*
@@ -28,7 +34,11 @@ RUN apt-get update && apt-get install -y software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
 # colcon + cargo tooling for building ros2-rust message crates.
+# colcon-common-extensions provides package-selection (`--packages-up-to`, used
+# by scripts/setup_ros2_ws.sh), output, and defaults plugins; without it colcon
+# only understands bare `build`/`test` and the setup script fails.
 RUN python3 -m pip install --no-cache-dir \
+        colcon-common-extensions \
         git+https://github.com/colcon/colcon-cargo.git \
         git+https://github.com/colcon/colcon-ros-cargo.git \
     && /root/.cargo/bin/cargo install --locked cargo-ament-build

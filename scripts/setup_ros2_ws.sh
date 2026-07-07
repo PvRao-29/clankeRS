@@ -44,15 +44,32 @@ echo "==> Building the ROS message crates (rclrs, std_msgs, sensor_msgs, ...)"
 cd "$WS"
 colcon build --packages-up-to sensor_msgs std_msgs rclrs
 
+# colcon's generated .cargo/config.toml patches the message crates but NOT rclrs.
+# The crates.io rclrs 0.7.0 is an older, API-incompatible release than the
+# ros2-rust `main` rclrs colcon just built, so downstream cargo packages must
+# patch rclrs to the local git source. Add it if missing.
+CARGO_CFG="$WS/.cargo/config.toml"
+if [ -f "$CARGO_CFG" ] && ! grep -q "patch.crates-io.rclrs" "$CARGO_CFG"; then
+  echo "==> Adding [patch.crates-io.rclrs] -> src/ros2_rust/rclrs to $CARGO_CFG"
+  cat >> "$CARGO_CFG" <<'EOF'
+
+[patch.crates-io.rclrs]
+path = "src/ros2_rust/rclrs"
+EOF
+fi
+
 cat <<'EOF'
 
-Done. To build clankeRS against real ROS 2:
+Done — rclrs + std_msgs/sensor_msgs Rust crates are built and patched in
+ros2_ws/.cargo/config.toml.
 
-    source ros2_ws/install/setup.bash
-    cargo build -p clankers-ros2 --features ros2
+IMPORTANT: the real DDS backend must be built as a cargo package that lives
+*inside* ros2_ws/ (so it inherits ros2_ws/.cargo/config.toml). It cannot be built
+from the main clankeRS workspace with `cargo build --features ros2`, because the
+message crates are yanked on crates.io and can't be declared there without
+breaking the ROS-free build. Wiring clankers-ros2 into ros2_ws/ is tracked in
+docs/ros2_integration.md.
 
-Then run the smoke test (see docs/ros2_integration.md):
-
-    cargo run -p ros2_pubsub_minimal --features ros2 &
-    ros2 topic echo /camera/image_raw --no-arr
+To reproduce the verified end-to-end check (typed sensor_msgs/Image over DDS),
+see the "Reference build" section of docs/ros2_integration.md.
 EOF

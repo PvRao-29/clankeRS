@@ -6,7 +6,7 @@ clankeRS is an early-stage Rust SDK for robotics teams on ROS 2 and PyTorch. The
 
 clankeRS is **not** a ROS replacement and **not** a PyTorch replacement. It is a Rust layer on top of your existing stack.
 
-> **Honest scope today:** Pub/sub in examples uses an **in-memory simulated bus** (no ROS 2 / DDS install required). Real `rclrs` integration is not shipped yet. Latency numbers depend on your machine and model size — treat benchmarks as local measurements, not production guarantees.
+> **Honest scope today:** Pub/sub in examples uses an **in-memory simulated bus** (no ROS 2 / DDS install required). Real `rclrs`/DDS integration is written behind an off-by-default `ros2` feature but **not yet verified on a ROS box** (see the status table below). Latency numbers depend on your machine and model size — treat benchmarks as local measurements, not production guarantees.
 
 <p align="center">
   <img src="docs/assets/camera_replay.gif" alt="clankeRS camera_replay example: MCAP log through ONNX inference with a latency report" width="680">
@@ -55,7 +55,7 @@ These paths are exercised in CI (`.github/workflows/ci.yml`) from a fresh clone 
 
 | Area | Status |
 |------|--------|
-| Real ROS 2 (DDS) via `rclrs` | Backend written behind the `ros2` feature (rclrs 0.7, API-checked); builds only in a colcon workspace and **not yet verified on a ROS box** — see [docs/ros2_integration.md](docs/ros2_integration.md) |
+| Real ROS 2 (DDS) via `rclrs` | Backend **compiled and run against ROS 2 Humble** (in `.devcontainer`, arm64): `ImageMsg` verified as real `sensor_msgs/msg/Image` via `ros2 topic echo`; `DetectionArray` on `std_msgs/String` JSON. Builds **only inside a colcon `ros2_ws/`** (message crates are yanked on crates.io; `rclrs` needs the git source), so it isn't a plain `--features ros2` build yet — see [docs/ros2_integration.md](docs/ros2_integration.md) |
 | `clankers record` | Stub — prints a hint; MCAP recording from `clankers run` is incomplete |
 | `clankers visualize` | Prints MCAP summary + Foxglove/Rerun pointers; no live bridge |
 | Live PyTorch at validate time | Not implemented — validation uses committed `expected_output.json` files |
