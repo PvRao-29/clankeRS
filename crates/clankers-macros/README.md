@@ -63,6 +63,8 @@ async fn replay_is_clean(ctx: ReplayContext) -> RobotResult<()> {
 
 ## Learn more
 
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
+- [Getting started](https://github.com/PvRao-29/clankeRS/blob/main/docs/getting_started.md)
 - [Testing guide](https://github.com/PvRao-29/clankeRS/blob/main/docs/testing.md)
 
 ## License

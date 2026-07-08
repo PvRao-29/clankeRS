@@ -1,6 +1,19 @@
 # PyTorch to ONNX
 
+Export PyTorch checkpoints to ONNX for use with `clankers::ml::Model` and `clankers validate-model`.
+
+## Prerequisites
+
+```bash
+cargo install clankers-cli
+cargo add clankers   # in your robot project
+```
+
+The export scripts (`scripts/`) and sample classifiers live in the [GitHub repository](installation.md#clone-for-development-or-the-bundled-demo). Clone the repo to run them locally.
+
 ## Export script
+
+From a repo clone:
 
 ```bash
 python3 scripts/export_pytorch_to_onnx.py \
@@ -23,9 +36,11 @@ clankers import-pytorch \
 ```bash
 clankers validate-model \
   --onnx models/detector.onnx \
-  --samples sample_data/policy_inputs/ \
+  --samples path/to/inputs/ \
   --tolerance 0.001
 ```
+
+See [Model validation](model_validation.md) for bundled `sample_data/` paths.
 
 ## Use in a node
 

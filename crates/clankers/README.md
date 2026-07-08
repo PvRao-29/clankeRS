@@ -42,7 +42,7 @@ cargo add clankers
 
 **Requirements:** Rust stable. First build downloads the ONNX Runtime binary automatically (network required).
 
-For scaffolding and tooling, install the CLI separately:
+For scaffolding and tooling, install the CLI separately (`clankers new` bundles templates — no clone required):
 
 ```bash
 cargo install clankers-cli
@@ -142,6 +142,7 @@ One dependency pulls in the full SDK surface:
 
 ## Learn more
 
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
 - [Getting started](https://github.com/PvRao-29/clankeRS/blob/main/docs/getting_started.md)
 - [ROS 2 integration](https://github.com/PvRao-29/clankeRS/blob/main/docs/ros2_integration.md)
 - [Model validation](https://github.com/PvRao-29/clankeRS/blob/main/docs/model_validation.md)

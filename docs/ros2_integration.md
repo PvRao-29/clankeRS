@@ -1,6 +1,6 @@
 # ROS 2 Integration
 
-clankeRS has **two ROS 2 backends behind one API**:
+clankeRS has **two ROS 2 backends behind one API**. The sim backend ships on [crates.io](https://crates.io/crates/clankers) via `clankers-ros2`; the real DDS backend requires a [repo clone](installation.md#clone-for-development-or-the-bundled-demo) and a colcon workspace under `ros2/`.
 
 | Backend | Where it lives | Needs ROS install? | Used by |
 |---------|----------------|--------------------|---------|
@@ -51,10 +51,6 @@ Pub/sub is an in-memory broadcast bus; messages are serialized as JSON.
 > plain `spin()` with no timeout never returns on live Humble DDS (even
 > `halt_spinning()` does not release it), which would otherwise hang the process
 > on exit.
->
-> **Rust toolchain:** rclrs 0.7 needs Rust ≥ 1.85 (the devcontainer ships current
-> stable). The repo's `rust-toolchain.toml` floats on `stable`, so the sim/golden
-> path tracks current stable.
 >
 > **Rust toolchain:** rclrs 0.7 needs Rust ≥ 1.85 (the devcontainer ships current
 > stable). The repo's `rust-toolchain.toml` floats on `stable`, so the sim/golden

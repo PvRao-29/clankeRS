@@ -53,6 +53,7 @@ let now = Timestamp::now();
 
 ## Learn more
 
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
 - [Architecture](https://github.com/PvRao-29/clankeRS/blob/main/docs/architecture.md)
 - [Getting started](https://github.com/PvRao-29/clankeRS/blob/main/docs/getting_started.md)
 

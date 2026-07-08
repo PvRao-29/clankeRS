@@ -59,6 +59,7 @@ println!("replayed {} messages", result.summary.input_messages);
 
 ## Learn more
 
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
 - [MCAP replay guide](https://github.com/PvRao-29/clankeRS/blob/main/docs/mcap_replay.md)
 - [Testing with replay](https://github.com/PvRao-29/clankeRS/blob/main/docs/testing.md)
 

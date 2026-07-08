@@ -1,7 +1,9 @@
 # Roadmap
 
+Published releases are on [crates.io](https://crates.io/crates/clankers) (currently v0.1.1). The items below track feature maturity inside the repo.
+
 ## v0.1 — ROS 2 node + ONNX inference
-- [x] Rust workspace
+- [x] Rust workspace + crates.io publish
 - [x] CLI skeleton
 - [x] Basic node template
 - [x] ONNX model loading

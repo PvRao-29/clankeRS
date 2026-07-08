@@ -1,5 +1,27 @@
 # Testing
 
+Replay-based tests let you validate node behavior against recorded MCAP logs.
+
+## Prerequisites
+
+Add clankeRS to your project:
+
+```bash
+cargo add clankers
+```
+
+Optional CLI for `clankers test`:
+
+```bash
+cargo install clankers-cli
+```
+
+Scaffold a project with replay tests built in:
+
+```bash
+clankers new my_robot --template replay-test-node
+```
+
 ## Replay-based tests
 
 ```rust
@@ -19,6 +41,8 @@ async fn camera_detector_replay_test(ctx: ReplayContext) -> Result<()> {
     Ok(())
 }
 ```
+
+Place your MCAP fixture under `tests/data/` in your project. Bundled sample logs are in the repo under `sample_data/` — see [Installation](installation.md#clone-for-development-or-the-bundled-demo).
 
 ## Run tests
 

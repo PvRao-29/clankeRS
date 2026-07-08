@@ -57,6 +57,11 @@ clankers_runtime::runtime::init_tracing();
 | `RuntimeMetrics` | Counters and latency summaries at runtime |
 | `init_tracing` | `tracing-subscriber` setup for nodes |
 
+## Learn more
+
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
+- [Architecture](https://github.com/PvRao-29/clankeRS/blob/main/docs/architecture.md)
+
 ## License
 
 MIT — see [LICENSE](https://github.com/PvRao-29/clankeRS/blob/main/LICENSE).

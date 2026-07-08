@@ -64,6 +64,11 @@ async fn main() -> clankers_core::RobotResult<()> {
 
 The `rclrs`/DDS implementation is **not** in this crate (ROS message deps are yanked on crates.io). It ships as colcon packages under [`ros2/`](https://github.com/PvRao-29/clankeRS/tree/main/ros2) in the main repository.
 
+## Learn more
+
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
+- [ROS 2 integration](https://github.com/PvRao-29/clankeRS/blob/main/docs/ros2_integration.md)
+
 ## License
 
 MIT — see [LICENSE](https://github.com/PvRao-29/clankeRS/blob/main/LICENSE).

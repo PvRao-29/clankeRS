@@ -53,6 +53,11 @@ let flat = tensor.to_vec(); // feed into ONNX
 | `PointCloudTensor` | XYZ point cloud buffers |
 | `DataLayout`, `DType` | NHWC / NCHW and dtype metadata |
 
+## Learn more
+
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
+- [Camera perception tutorial](https://github.com/PvRao-29/clankeRS/blob/main/docs/camera_perception_tutorial.md)
+
 ## License
 
 MIT — see [LICENSE](https://github.com/PvRao-29/clankeRS/blob/main/LICENSE).

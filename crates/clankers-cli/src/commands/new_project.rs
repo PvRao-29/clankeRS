@@ -14,25 +14,28 @@ pub fn execute(name: &str, template: &str) -> Result<()> {
     copy_dir_recursive(&template_dir, dest)?;
     replace_in_tree(dest, "{{PROJECT_NAME}}", name)?;
 
-    let clankers_path = clankers_dependency_path(dest)?;
-    replace_in_tree(dest, "{{CLANKERS_PATH}}", &clankers_path)?;
+    let clankers_dep = clankers_dependency_line(dest)?;
+    replace_in_tree(dest, "{{CLANKERS_DEPENDENCY}}", &clankers_dep)?;
 
     println!("clankeRS project created: {name}\n\nNext steps:\n  cd {name}\n  clankers run");
     Ok(())
 }
 
-fn clankers_dependency_path(dest: &Path) -> Result<String> {
+fn clankers_dependency_line(dest: &Path) -> Result<String> {
     if let Some(workspace) = find_workspace_root() {
         let clankers_crate = workspace.join("crates/clankers");
         if clankers_crate.exists() {
             let dest_abs = std::env::current_dir()?.join(dest);
             if let Some(rel) = relative_path(&dest_abs, &clankers_crate) {
-                return Ok(rel.to_string_lossy().into_owned());
+                return Ok(format!(
+                    "clankers = {{ path = \"{}\" }}",
+                    rel.to_string_lossy()
+                ));
             }
         }
     }
-    // Fallback for out-of-tree projects after `cargo install clankers-cli`
-    Ok("../clankeRS/crates/clankers".to_string())
+    // Published crates.io install — no repo checkout required
+    Ok(r#"clankers = "0.1""#.to_string())
 }
 
 fn relative_path(from: &Path, to: &Path) -> Option<PathBuf> {
@@ -71,6 +74,11 @@ fn find_workspace_root() -> Option<PathBuf> {
 
 fn find_template(template: &str) -> Result<std::path::PathBuf> {
     let normalized = template.replace('-', "_");
+    let bundled = PathBuf::from(env!("TEMPLATES_DIR")).join(&normalized);
+    if bundled.exists() {
+        return Ok(bundled);
+    }
+
     let candidates = [
         format!("templates/{normalized}"),
         format!("../templates/{normalized}"),

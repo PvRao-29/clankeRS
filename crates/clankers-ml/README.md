@@ -63,6 +63,7 @@ report.print();
 
 ## Learn more
 
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
 - [PyTorch → ONNX](https://github.com/PvRao-29/clankeRS/blob/main/docs/pytorch_to_onnx.md)
 - [Model validation](https://github.com/PvRao-29/clankeRS/blob/main/docs/model_validation.md)
 

@@ -51,6 +51,11 @@ twist.linear_x = 0.5;
 
 All types support JSON serialization for logging and replay fixtures.
 
+## Learn more
+
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
+- [Getting started](https://github.com/PvRao-29/clankeRS/blob/main/docs/getting_started.md)
+
 ## License
 
 MIT — see [LICENSE](https://github.com/PvRao-29/clankeRS/blob/main/LICENSE).

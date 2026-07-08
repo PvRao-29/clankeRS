@@ -2,9 +2,13 @@
 
 ## Build release binary
 
+From your clankeRS project (created with `clankers new` or `cargo add clankers`):
+
 ```bash
 cargo build --release
 ```
+
+The binary is at `target/release/<package-name>`.
 
 ## Docker (robot computer)
 
@@ -23,7 +27,13 @@ For ARM robot computers, use `cross` or a target-specific toolchain. ONNX Runtim
 
 ## Checklist
 
-1. `clankers validate-model` passed
+1. `clankers validate-model` passed on representative inputs
 2. Replay tests pass in CI
 3. Latency within budget on target hardware
-4. MCAP logging enabled for field debugging
+4. MCAP logging enabled for field debugging (when `record_mcap` support lands)
+
+## Related docs
+
+- [Model validation](model_validation.md)
+- [Testing](testing.md)
+- [Installation](installation.md) — crates.io install for new projects

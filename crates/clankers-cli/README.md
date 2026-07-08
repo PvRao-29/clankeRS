@@ -24,6 +24,8 @@ Scaffold projects, replay MCAP logs, validate ONNX models, and run the camera-pe
 cargo install clankers-cli
 ```
 
+Templates for `clankers new` are bundled in the crate — no repo clone required.
+
 ```bash
 clankers --help
 ```
@@ -31,21 +33,22 @@ clankers --help
 ## Quick start
 
 ```bash
-# New project from a template
+# New project from a template (works from any directory)
 clankers new my_robot --template perception-node
 cd my_robot
 clankers run
 
-# Inspect and replay a log
-clankers inspect sample_data/camera_log.mcap
-clankers replay sample_data/camera_log.mcap
+# Inspect and replay your own MCAP log
+clankers inspect path/to/camera_log.mcap
+clankers replay path/to/camera_log.mcap
 
 # Validate ONNX against stored PyTorch references
 clankers validate-model \
-  --onnx sample_data/models/detector.onnx \
-  --samples sample_data/detector_inputs
+  --onnx models/detector.onnx \
+  --samples path/to/inputs/
 
-# Golden-path demo (MCAP → ONNX → detections)
+# Golden-path demo (requires a repo clone for sample_data/)
+git clone https://github.com/PvRao-29/clankeRS.git && cd clankeRS
 clankers demo camera-perception
 ```
 
@@ -71,6 +74,7 @@ clankers demo camera-perception
 
 - [Getting started](https://github.com/PvRao-29/clankeRS/blob/main/docs/getting_started.md)
 - [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
+- [Camera perception tutorial](https://github.com/PvRao-29/clankeRS/blob/main/docs/camera_perception_tutorial.md)
 
 ## License
 

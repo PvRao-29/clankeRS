@@ -35,7 +35,7 @@ cd hello_clanker
 clankers run
 ```
 
-Or clone the repo to build everything and run the bundled demo (sample data included):
+Or clone the repo to run the bundled demo, use `sample_data/`, or contribute (sample data included):
 
 ```bash
 git clone https://github.com/PvRao-29/clankeRS.git
@@ -45,7 +45,7 @@ cargo build --workspace
 # Golden-path demo (MCAP → preprocess → ONNX → detections → sim pub/sub)
 cargo run --release -p clankers --example camera_replay
 
-# The CLI can also be installed straight from the checkout
+# CLI from a checkout (picks up local changes)
 cargo install --path crates/clankers-cli
 ```
 
@@ -57,10 +57,10 @@ These paths are exercised in CI (`.github/workflows/ci.yml`) from a fresh clone 
 |------|---------------|-------|
 | Workspace build | `cargo build --workspace` | |
 | CLI | `cargo run -p clankers-cli -- --help` | Install with `cargo install clankers-cli` (or `--path crates/clankers-cli` from a checkout) |
-| MCAP inspect | `clankers inspect sample_data/camera_log.mcap` | |
+| MCAP inspect | `clankers inspect sample_data/camera_log.mcap` | Requires a [repo clone](docs/installation.md#clone-for-development-or-the-bundled-demo) for `sample_data/` |
 | MCAP replay (data only) | `clankers replay sample_data/camera_log.mcap` | Replays messages and reports stats; **does not** run your node or ONNX |
-| MCAP latency stats | `clankers latency sample_data/camera_log.mcap` | |
-| **Golden-path vertical slice** | `cargo run --release -p clankers --example camera_replay` | Full pipeline on sample data; same as `clankers demo camera-perception` |
+| MCAP latency stats | `clankers latency sample_data/camera_log.mcap` | Requires repo clone for `sample_data/` |
+| **Golden-path vertical slice** | `cargo run --release -p clankers --example camera_replay` | Requires repo clone; same pipeline as `clankers demo camera-perception` |
 | ONNX inference node | `cargo run -p camera_perception_node` | 10 synthetic camera frames on the sim bus; uses `sample_data/models/detector.onnx` when present |
 | Model validation | see below | Compares Rust ONNX output to a **pre-recorded** PyTorch reference |
 | Image preprocessing | `clankers_tensor::ImageTensor` | Resize, ImageNet normalize, NCHW |
@@ -127,10 +127,12 @@ The FPS/latency figures measure the in-process pipeline (decode → preprocess �
 `validate-model` checks that Rust ONNX Runtime output matches a **stored PyTorch reference** (`expected_output.json`) for a fixed sample input. PyTorch is **not** required at validation time — references are generated offline (see below).
 
 ```bash
-cargo run -p clankers-cli -- validate-model \
+clankers validate-model \
   --onnx sample_data/models/detector.onnx \
   --samples sample_data/detector_inputs
 ```
+
+Run from a repo clone so `sample_data/` is available. After `cargo install clankers-cli`, use the `clankers` command directly; from a checkout you can also use `cargo run -p clankers-cli -- validate-model …`.
 
 Example output:
 
@@ -154,7 +156,7 @@ The `safe to deploy` line means **numerical agreement on the bundled sample inpu
 Policy model (default samples dir):
 
 ```bash
-cargo run -p clankers-cli -- validate-model --onnx sample_data/models/policy.onnx
+clankers validate-model --onnx sample_data/models/policy.onnx
 ```
 
 ## Regenerating sample models
@@ -170,7 +172,7 @@ This exports two small deterministic PyTorch models to ONNX and writes `expected
 
 ## Crates
 
-All crates are published on crates.io under the `0.1.0` release. Most users only need the top-level [`clankers`](https://crates.io/crates/clankers) facade (or the `clankers-cli` binary); the rest are re-exported through it.
+All crates are published on crates.io at **v0.1.1**. Most users only need the top-level [`clankers`](https://crates.io/crates/clankers) facade (or the `clankers-cli` binary); the rest are re-exported through it.
 
 | Crate | crates.io | docs.rs | Purpose |
 |-------|-----------|---------|---------|

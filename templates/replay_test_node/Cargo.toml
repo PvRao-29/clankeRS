@@ -6,8 +6,8 @@ edition = "2021"
 [workspace]
 
 [dependencies]
-clankers = { path = "{{CLANKERS_PATH}}" }
+{{CLANKERS_DEPENDENCY}}
 tokio = { version = "1", features = ["full"] }
 
 [dev-dependencies]
-clankers = { path = "{{CLANKERS_PATH}}" }
+{{CLANKERS_DEPENDENCY}}

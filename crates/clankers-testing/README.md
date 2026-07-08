@@ -60,6 +60,7 @@ async fn camera_log_replays_cleanly() {
 
 ## Learn more
 
+- [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
 - [MCAP replay](https://github.com/PvRao-29/clankeRS/blob/main/docs/mcap_replay.md)
 - [Testing guide](https://github.com/PvRao-29/clankeRS/blob/main/docs/testing.md)
 
