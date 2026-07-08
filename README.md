@@ -8,9 +8,7 @@
 
 **Train in PyTorch. Deploy in Rust. Replay-test against real robot logs.**
 
-clankeRS is an early-stage Rust SDK for robotics teams on ROS 2 and PyTorch. The goal is memory-safe robot nodes, ONNX inference in Rust, MCAP-based replay testing, and a CLI that ties the workflow together.
-
-clankeRS is **not** a ROS replacement and **not** a PyTorch replacement. It is a Rust layer on top of your existing stack.
+clankeRS is a Rust SDK for robotics teams on ROS 2 and PyTorch. The goal is memory-safe robot nodes, ONNX inference in Rust, MCAP-based replay testing, and a CLI that ties the workflow together.
 
 > **Honest scope today:** Pub/sub in the workspace examples uses an **in-memory simulated bus** (no ROS 2 / DDS install required). Real `rclrs`/DDS integration is verified against ROS 2 Humble and ships as checked-in colcon packages under [`ros2/`](ros2/) with a one-command build — it builds **only inside a colcon workspace**, not from the plain `cargo build` (see the status table below). Latency numbers depend on your machine and model size — treat benchmarks as local measurements, not production guarantees.
 
