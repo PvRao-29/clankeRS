@@ -1,0 +1,143 @@
+name: ROS 2 (DDS)
+
+# Builds the real rclrs/DDS backend (ros2/clankers-ros2-dds) inside a ROS 2
+# Humble + colcon workspace, runs the bridge unit tests, and verifies a typed
+# sensor_msgs/Image flows over the DDS graph end to end.
+#
+# This is expensive (~10-15 min colcon build of rclrs + message crates), so it
+# only runs when the ROS-related sources change, or on manual dispatch.
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "ros2/**"
+      - "crates/clankers-ros2/**"
+      - "crates/clankers-core/**"
+      - "scripts/setup_ros2_ws.sh"
+      - ".devcontainer/**"
+      - ".github/workflows/ros2.yml"
+  pull_request:
+    branches: [main, master]
+    paths:
+      - "ros2/**"
+      - "crates/clankers-ros2/**"
+      - "crates/clankers-core/**"
+      - "scripts/setup_ros2_ws.sh"
+      - ".devcontainer/**"
+      - ".github/workflows/ros2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ros2-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # Isolate this job's DDS traffic from anything else on the runner.
+  ROS_DOMAIN_ID: "42"
+
+jobs:
+  dds:
+    name: colcon build + bridge tests + DDS smoke test
+    # ROS 2 Humble targets Ubuntu 22.04 (jammy).
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      # Mirrors .devcontainer/Dockerfile: ROS 2 Humble apt repo + base install.
+      - name: Install ROS 2 Humble and build tooling
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common curl gnupg lsb-release
+          sudo add-apt-repository -y universe
+          sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+            -o /usr/share/keyrings/ros-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu jammy main" \
+            | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y \
+            ros-humble-ros-base \
+            python3-vcstool \
+            python3-pip \
+            libclang-dev
+
+      - name: Install Rust toolchain
+        # rclrs 0.7 needs Rust >= 1.85; repo rust-toolchain.toml floats on stable.
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      # colcon-common-extensions provides --packages-up-to (used by the setup
+      # script). setup_ros2_ws.sh installs colcon-cargo/colcon-ros-cargo and
+      # cargo-ament-build itself.
+      - name: Put user-installed tools on PATH
+        run: |
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Install colcon
+        run: python3 -m pip install --user colcon-common-extensions
+
+      # Cache the whole ROS workspace: the ros2_rust clone + the colcon-built
+      # rclrs/message crates. colcon rebuilds incrementally on a hit, so this
+      # turns a ~15 min cold build into a short incremental one.
+      - name: Cache ros2_ws
+        uses: actions/cache@v4
+        with:
+          path: ros2_ws
+          key: ros2ws-humble-${{ hashFiles('scripts/setup_ros2_ws.sh') }}-v1
+
+      - name: Bootstrap ros2_ws and build the DDS packages
+        run: |
+          # No `-u`: ROS setup.bash references unbound vars (AMENT_TRACE_SETUP_FILES).
+          set -exo pipefail
+          source /opt/ros/humble/setup.bash
+          bash scripts/setup_ros2_ws.sh
+
+      - name: Bridge unit tests (ImageMsg <-> sensor_msgs/Image)
+        run: |
+          # No `-u`: ROS setup.bash references unbound vars (AMENT_TRACE_SETUP_FILES).
+          set -exo pipefail
+          source /opt/ros/humble/setup.bash
+          source ros2_ws/install/setup.bash
+          cd ros2/clankers-ros2-dds
+          cargo test
+
+      - name: DDS smoke test (typed sensor_msgs/Image over the graph)
+        run: |
+          # No `-u`: ROS setup.bash references unbound vars (AMENT_TRACE_SETUP_FILES).
+          set -exo pipefail
+          source /opt/ros/humble/setup.bash
+          source ros2_ws/install/setup.bash
+
+          BIN="$PWD/ros2_ws/install/pubsub_minimal_dds/lib/pubsub_minimal_dds/pubsub_minimal_dds"
+          "$BIN" &
+          PUB=$!
+
+          # Let discovery settle, then confirm the wire type and typed fields.
+          sleep 5
+          ros2 topic type /camera/image_raw | tee /tmp/type.txt
+          grep -q "sensor_msgs/msg/Image" /tmp/type.txt
+          timeout 15 ros2 topic echo --once /camera/image_raw | tee /tmp/echo.txt
+          grep -q "encoding: rgb8" /tmp/echo.txt
+
+          # Graceful shutdown: SIGINT must halt + join the executor thread quickly.
+          kill -INT "$PUB"
+          for _ in $(seq 1 50); do
+            kill -0 "$PUB" 2>/dev/null || break
+            sleep 0.1
+          done
+          if kill -0 "$PUB" 2>/dev/null; then
+            echo "publisher did not exit within 5s of SIGINT" >&2
+            kill -9 "$PUB" || true
+            exit 1
+          fi
+          wait "$PUB" || true
+          echo "DDS smoke test passed: typed sensor_msgs/Image verified, clean shutdown."

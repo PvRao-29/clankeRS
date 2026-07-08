@@ -16,7 +16,8 @@ use serde::Serialize;
 pub enum WireType {
     /// `std_msgs/String` envelope holding the message JSON (default transport).
     StringJson,
-    /// `sensor_msgs/Image`, via the typed bridge in [`crate::bridge::image`].
+    /// `sensor_msgs/Image`, via the typed bridge in the `clankers-ros2-dds`
+    /// crate (the real DDS backend; see `ros2/clankers-ros2-dds`).
     Image,
 }
 
