@@ -3,17 +3,20 @@ name: CI
 on:
   push:
     branches: [main, master]
+    tags: ["v*"]
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
 
-# Least privilege: CI only needs to read the repo.
+# Least privilege: CI only needs to read the repo. The publish job opts into OIDC.
 permissions:
   contents: read
 
 # Cancel superseded runs on the same ref so pushes don't pile up runners.
+# Never cancel an in-flight release when another workflow starts.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -22,6 +25,7 @@ jobs:
   # Gate 1: the code is formatted, lint-clean, and tested.
   check:
     name: fmt / clippy / test
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -48,6 +52,7 @@ jobs:
   # must compile, and the ml crate's backend-disabled path must still pass.
   no-default-features:
     name: no-default-features (sim only)
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -62,6 +67,7 @@ jobs:
   # Gate 3: documentation builds and intra-doc links resolve.
   docs:
     name: doc links
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -76,6 +82,7 @@ jobs:
   # Gate 4: supply chain — advisories, licenses, banned/wildcard deps, sources.
   deny:
     name: cargo-deny
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -88,6 +95,7 @@ jobs:
   # PyTorch-exported ONNX -> clankeRS validation -> Rust inference -> MCAP replay.
   golden-path:
     name: golden path (PyTorch -> ONNX -> Rust -> replay)
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     needs: check
     timeout-minutes: 30
@@ -117,3 +125,53 @@ jobs:
 
       - name: Run ONNX inference node (live pub/sub)
         run: cargo run -p camera_perception_node
+
+  # Release: publish workspace crates to crates.io via Trusted Publishing (OIDC).
+  # Configured on crates.io as workflow filename `ci.yml`, environment `release`.
+  publish:
+    name: publish to crates.io
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+
+      - name: Publish workspace crates (bottom-up)
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: |
+          set -euo pipefail
+          crates=(
+            clankers-core
+            clankers-macros
+            clankers-ros2
+            clankers-geometry
+            clankers-ml
+            clankers-runtime
+            clankers-data
+            clankers-tensor
+            clankers-testing
+            clankers-cli
+            clankers
+          )
+          for c in "${crates[@]}"; do
+            echo ">> publishing $c"
+            if cargo publish -p "$c" 2> >(tee /tmp/publish.err >&2); then
+              echo ">> published $c"
+            elif grep -q "already exists on crates.io index" /tmp/publish.err; then
+              echo ">> skip $c (version already on crates.io)"
+            else
+              exit 1
+            fi
+          done
