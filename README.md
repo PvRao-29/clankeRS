@@ -1,5 +1,11 @@
 # clankeRS
 
+<p align="center">
+  <a href="https://crates.io/crates/clankers"><img src="https://img.shields.io/crates/v/clankers.svg" alt="crates.io"></a>
+  <a href="https://docs.rs/clankers"><img src="https://docs.rs/clankers/badge.svg" alt="docs.rs"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/crates/l/clankers.svg" alt="MIT license"></a>
+</p>
+
 **Train in PyTorch. Deploy in Rust. Replay-test against real robot logs.**
 
 clankeRS is an early-stage Rust SDK for robotics teams on ROS 2 and PyTorch. The goal is memory-safe robot nodes, ONNX inference in Rust, MCAP-based replay testing, and a CLI that ties the workflow together.
@@ -18,6 +24,21 @@ clankeRS is **not** a ROS replacement and **not** a PyTorch replacement. It is a
 
 **Requirements:** Rust stable, network on first build (ONNX Runtime binary is downloaded automatically).
 
+The whole workspace is published on [crates.io](https://crates.io/crates/clankers), so you can use clankeRS without cloning the repo:
+
+```bash
+# Add the SDK to your own project
+cargo add clankers
+
+# Install the CLI as `clankers`
+cargo install clankers-cli
+clankers new hello_clanker --template basic-node
+cd hello_clanker
+clankers run
+```
+
+Or clone the repo to build everything and run the bundled demo (sample data included):
+
 ```bash
 git clone https://github.com/PvRao-29/clankeRS.git
 cd clankeRS
@@ -26,11 +47,8 @@ cargo build --workspace
 # Golden-path demo (MCAP → preprocess → ONNX → detections → sim pub/sub)
 cargo run --release -p clankers --example camera_replay
 
-# Optional: install the CLI as `clankers`
+# The CLI can also be installed straight from the checkout
 cargo install --path crates/clankers-cli
-clankers new hello_clanker --template basic-node
-cd hello_clanker
-clankers run
 ```
 
 ## What works today
@@ -40,7 +58,7 @@ These paths are exercised in CI (`.github/workflows/ci.yml`) from a fresh clone 
 | Area | How to try it | Notes |
 |------|---------------|-------|
 | Workspace build | `cargo build --workspace` | |
-| CLI | `cargo run -p clankers-cli -- --help` | Install with `cargo install --path crates/clankers-cli` |
+| CLI | `cargo run -p clankers-cli -- --help` | Install with `cargo install clankers-cli` (or `--path crates/clankers-cli` from a checkout) |
 | MCAP inspect | `clankers inspect sample_data/camera_log.mcap` | |
 | MCAP replay (data only) | `clankers replay sample_data/camera_log.mcap` | Replays messages and reports stats; **does not** run your node or ONNX |
 | MCAP latency stats | `clankers latency sample_data/camera_log.mcap` | |
@@ -151,6 +169,26 @@ python3 scripts/make_sample_models.py
 ```
 
 This exports two small deterministic PyTorch models to ONNX and writes `expected_output.json` for `validate-model`.
+
+## Crates
+
+All crates are published on crates.io under the `0.1.0` release. Most users only need the top-level [`clankers`](https://crates.io/crates/clankers) facade (or the `clankers-cli` binary); the rest are re-exported through it.
+
+| Crate | crates.io | docs.rs | Purpose |
+|-------|-----------|---------|---------|
+| [`clankers`](https://crates.io/crates/clankers) | [![crates.io](https://img.shields.io/crates/v/clankers.svg)](https://crates.io/crates/clankers) | [docs](https://docs.rs/clankers) | Umbrella SDK facade — start here |
+| [`clankers-cli`](https://crates.io/crates/clankers-cli) | [![crates.io](https://img.shields.io/crates/v/clankers-cli.svg)](https://crates.io/crates/clankers-cli) | [docs](https://docs.rs/clankers-cli) | `clankers` command-line tool |
+| [`clankers-core`](https://crates.io/crates/clankers-core) | [![crates.io](https://img.shields.io/crates/v/clankers-core.svg)](https://crates.io/crates/clankers-core) | [docs](https://docs.rs/clankers-core) | Core primitives and types |
+| [`clankers-ros2`](https://crates.io/crates/clankers-ros2) | [![crates.io](https://img.shields.io/crates/v/clankers-ros2.svg)](https://crates.io/crates/clankers-ros2) | [docs](https://docs.rs/clankers-ros2) | ROS-free core: sim backend + message/QoS types |
+| [`clankers-data`](https://crates.io/crates/clankers-data) | [![crates.io](https://img.shields.io/crates/v/clankers-data.svg)](https://crates.io/crates/clankers-data) | [docs](https://docs.rs/clankers-data) | MCAP logging, replay, inspection |
+| [`clankers-ml`](https://crates.io/crates/clankers-ml) | [![crates.io](https://img.shields.io/crates/v/clankers-ml.svg)](https://crates.io/crates/clankers-ml) | [docs](https://docs.rs/clankers-ml) | ONNX inference and model deployment |
+| [`clankers-tensor`](https://crates.io/crates/clankers-tensor) | [![crates.io](https://img.shields.io/crates/v/clankers-tensor.svg)](https://crates.io/crates/clankers-tensor) | [docs](https://docs.rs/clankers-tensor) | Robotics-focused tensor utilities |
+| [`clankers-geometry`](https://crates.io/crates/clankers-geometry) | [![crates.io](https://img.shields.io/crates/v/clankers-geometry.svg)](https://crates.io/crates/clankers-geometry) | [docs](https://docs.rs/clankers-geometry) | Math, transforms, and frames |
+| [`clankers-runtime`](https://crates.io/crates/clankers-runtime) | [![crates.io](https://img.shields.io/crates/v/clankers-runtime.svg)](https://crates.io/crates/clankers-runtime) | [docs](https://docs.rs/clankers-runtime) | Execution, scheduling, observability |
+| [`clankers-testing`](https://crates.io/crates/clankers-testing) | [![crates.io](https://img.shields.io/crates/v/clankers-testing.svg)](https://crates.io/crates/clankers-testing) | [docs](https://docs.rs/clankers-testing) | Replay-based testing tools |
+| [`clankers-macros`](https://crates.io/crates/clankers-macros) | [![crates.io](https://img.shields.io/crates/v/clankers-macros.svg)](https://crates.io/crates/clankers-macros) | [docs](https://docs.rs/clankers-macros) | Proc macros for nodes and replay tests |
+
+> The real `rclrs`/DDS packages under [`ros2/`](ros2/) are **not** published to crates.io — they build only inside a colcon workspace (see [docs/ros2_integration.md](docs/ros2_integration.md)).
 
 ## Documentation
 
