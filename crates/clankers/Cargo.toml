@@ -7,7 +7,7 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
-keywords = ["robotics", "ros2", "onnx", "mcap", "machine-learning", "inference", "replay"]
+keywords = ["robotics", "ros2", "onnx", "mcap", "machine-learning"]
 categories = ["science", "asynchronous", "development-tools"]
 
 [dependencies]
