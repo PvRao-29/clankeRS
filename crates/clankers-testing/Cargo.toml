@@ -13,3 +13,6 @@ clankers-data.workspace = true
 clankers-ros2.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

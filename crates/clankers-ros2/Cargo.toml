@@ -23,3 +23,6 @@ tracing.workspace = true
 # `cargo build`. They live in the colcon package ros2/clankers-ros2-dds, which
 # path-depends on this crate for the shared message/QoS types. See
 # docs/ros2_integration.md.
+
+[dev-dependencies]
+tokio = { workspace = true }

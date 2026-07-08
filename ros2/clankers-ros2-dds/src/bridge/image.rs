@@ -68,4 +68,45 @@ mod tests {
         let back = from_ros(&ros);
         assert_eq!(back, original);
     }
+
+    #[test]
+    fn sub_second_stamp_splits_correctly() {
+        let msg = ImageMsg {
+            stamp_nanos: 999_999_999,
+            frame_id: "cam".into(),
+            width: 1,
+            height: 1,
+            encoding: "rgb8".into(),
+            step: 3,
+            data: vec![0u8; 3],
+        };
+        let ros = to_ros(&msg);
+        assert_eq!(ros.header.stamp.sec, 0);
+        assert_eq!(ros.header.stamp.nanosec, 999_999_999);
+        assert_eq!(from_ros(&ros), msg);
+    }
+
+    #[test]
+    fn negative_sec_is_clamped_to_zero() {
+        // A negative wire timestamp (should not happen from clankeRS, but stock
+        // ROS nodes can emit one) clamps to 0 rather than wrapping.
+        let ros = sensor_msgs::msg::Image {
+            header: std_msgs::msg::Header {
+                stamp: builtin_interfaces::msg::Time {
+                    sec: -5,
+                    nanosec: 250,
+                },
+                frame_id: "cam".into(),
+            },
+            height: 2,
+            width: 2,
+            encoding: "mono8".into(),
+            is_bigendian: 0,
+            step: 2,
+            data: vec![1u8; 4],
+        };
+        let msg = from_ros(&ros);
+        assert_eq!(msg.stamp_nanos, 250);
+        assert_eq!(msg.encoding, "mono8");
+    }
 }

@@ -22,3 +22,6 @@ tokio.workspace = true
 [features]
 default = ["ml"]
 ml = ["clankers-ml/onnxruntime"]
+
+[dev-dependencies]
+tempfile = "3"
