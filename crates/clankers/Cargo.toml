@@ -2,7 +2,7 @@
 name = "clankers"
 description = "clankeRS — Rust SDK for robotics applications in the ROS 2 ecosystem"
 readme = "README.md"
-version = "0.1.1"
+version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
