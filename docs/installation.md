@@ -2,7 +2,7 @@
 
 ## Install from crates.io
 
-All clankeRS crates are published on [crates.io](https://crates.io/crates/clankers) at **v0.1.1**. You do not need to clone the repository to use the SDK, scaffold projects, or run the CLI.
+All clankeRS crates are published on [crates.io](https://crates.io/crates/clankers) at **v0.1.2**. You do not need to clone the repository to use the SDK, scaffold projects, or run the CLI.
 
 ```bash
 # Add the SDK to your project

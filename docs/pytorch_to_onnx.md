@@ -1,6 +1,6 @@
 # PyTorch to ONNX
 
-Export PyTorch checkpoints to ONNX for use with `clankers::ml::Model` and `clankers validate-model`.
+Export PyTorch checkpoints to ONNX for use with [`clankers::ml::Model`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html) and `clankers validate-model`.
 
 ## Prerequisites
 
@@ -52,9 +52,32 @@ backend = "onnxruntime"
 device = "cpu"
 ```
 
+Primary inference path — zero-copy tensor views and named outputs:
+
 ```rust
-let model = Model::load("models/detector.onnx")?;
-let output = model.run(&tensor.to_vec())?;
+use clankers::ml::OnnxRuntimeBackend;
+use clankers::prelude::*;
+use clankers_tensor::{DType, Layout, Shape, TensorView};
+
+let mut model = ModelBuilder::from_config(&model_cfg, ctx.resolve_path(&model_cfg.path))?.build()?;
+// or: Model::builder().backend(OnnxRuntimeBackend::default()).load("models/detector.onnx")?;
+
+let tensor = ImageTensor::from_ros_msg(&frame)?
+    .resize(224, 224)?
+    .normalize_imagenet()?
+    .to_nchw()?;
+
+let shape = tensor.nchw_shape();
+let view = tensor.as_nchw_view(&shape)?;
+let input_name = model.engine().input_specs()[0].name.as_str();
+let outputs = model.run_named([(input_name, view)])?;
+```
+
+Single-input convenience (flat `f32` buffer):
+
+```rust
+let mut model = Model::load("models/detector.onnx")?;
+let output = model.run(&input_f32)?;
 ```
 
 ## Limitations

@@ -64,11 +64,12 @@ clankers demo camera-perception
 | `latency` | Latency stats from a replay |
 | `compare` | Diff two MCAP files |
 | `validate-model` | ONNX vs PyTorch reference outputs |
+| `bench` | Benchmark inference latency and copy/allocation stats |
 | `import-pytorch` | Export a checkpoint to ONNX |
 | `add-model` | Register a model in `clankeRS.toml` |
 | `visualize` | MCAP summary for Foxglove / Rerun |
 | `demo` | Run bundled demos (`camera-perception`) |
-| `record` | MCAP recording (stub in v0.1) |
+| `record` | MCAP recording (stub — not complete yet) |
 
 ## Learn more
 

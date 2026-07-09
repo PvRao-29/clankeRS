@@ -1,6 +1,6 @@
 # Getting Started
 
-clankeRS is published on [crates.io](https://crates.io/crates/clankers) at **v0.1.1**, so you can build robot nodes without cloning this repository.
+clankeRS is published on [crates.io](https://crates.io/crates/clankers) at **v0.1.2**, so you can build robot nodes without cloning this repository.
 
 ## Requirements
 
@@ -86,11 +86,40 @@ This is the same pipeline as `clankers demo camera-perception`, which must be ru
 ## What you get out of the box
 
 - **Sim pub/sub** — develop and test nodes without installing ROS 2
-- **ONNX inference** — load and run models via `clankers::ml`
+- **Optimized ONNX inference** — load models with [`Model`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html), bind zero-copy [`TensorView`](https://docs.rs/clankers-tensor/latest/clankers_tensor/struct.TensorView.html) inputs, read named outputs
 - **MCAP replay** — inspect logs and write replay tests
-- **CLI tooling** — scaffold projects, validate models, measure latency
+- **CLI tooling** — scaffold projects, validate models, benchmark latency (`clankers bench`)
 
 Real DDS / `rclrs` integration is available from the repo under `ros2/` and builds only inside a colcon workspace. See [ROS 2 integration](ros2_integration.md).
+
+### Run inference (primary API)
+
+```rust
+use clankers::ml::OnnxRuntimeBackend;
+use clankers::prelude::*;
+use clankers_tensor::{DType, Layout, Shape, TensorView};
+
+let mut model = Model::builder()
+    .backend(OnnxRuntimeBackend::default())
+    .load("models/policy.onnx")?;
+
+let image = TensorView::from_slice(
+    image_bytes,
+    DType::U8,
+    &Shape::from([1, 64, 64, 3]),
+    Layout::Contiguous,
+)?;
+let state = TensorView::from_f32(&state_f32, &Shape::from([1, 12]))?;
+
+let outputs = model.run_named([("image", image), ("state", state)])?;
+```
+
+Single-input convenience (templates and quick scripts):
+
+```rust
+let mut model = Model::load("models/policy.onnx")?;
+let action = model.run(&input_f32)?;
+```
 
 ## Next steps
 

@@ -63,7 +63,8 @@ These paths are exercised in CI (`.github/workflows/ci.yml`) from a fresh clone 
 | **Golden-path vertical slice** | `cargo run --release -p clankers --example camera_replay` | Requires repo clone; same pipeline as `clankers demo camera-perception` |
 | ONNX inference node | `cargo run -p camera_perception_node` | 10 synthetic camera frames on the sim bus; uses `sample_data/models/detector.onnx` when present |
 | Model validation | see below | Compares Rust ONNX output to a **pre-recorded** PyTorch reference |
-| Image preprocessing | `clankers_tensor::ImageTensor` | Resize, ImageNet normalize, NCHW |
+| Inference benchmark | `clankers bench --model sample_data/models/detector.onnx` | p50/p95/p99 latency + `clankers_copies` / allocation stats |
+| Image preprocessing | `clankers_tensor::ImageTensor` + `TensorView` | Resize, ImageNet normalize, NCHW, zero-copy bind to `Model` |
 | Replay-test macro | `#[clankers::replay_test("…")]` | See [docs/testing.md](docs/testing.md) |
 | Project templates | `clankers new <name> --template basic-node` | Also: `perception-node`, `ml-inference-node`, `replay-test-node` |
 
@@ -208,7 +209,7 @@ This exports two small deterministic PyTorch models to ONNX and writes `expected
 
 ## Crates
 
-All crates are published on crates.io at **v0.1.1**. Most users only need the top-level [`clankers`](https://crates.io/crates/clankers) facade (or the `clankers-cli` binary); the rest are re-exported through it.
+All crates are published on crates.io at **v0.1.2**. Most users only need the top-level [`clankers`](https://crates.io/crates/clankers) facade (or the `clankers-cli` binary); the rest are re-exported through it.
 
 | Crate | crates.io | docs.rs | Purpose |
 |-------|-----------|---------|---------|
@@ -217,8 +218,8 @@ All crates are published on crates.io at **v0.1.1**. Most users only need the to
 | [`clankers-core`](https://crates.io/crates/clankers-core) | [![crates.io](https://img.shields.io/crates/v/clankers-core.svg)](https://crates.io/crates/clankers-core) | [docs](https://docs.rs/clankers-core) | Core primitives and types |
 | [`clankers-ros2`](https://crates.io/crates/clankers-ros2) | [![crates.io](https://img.shields.io/crates/v/clankers-ros2.svg)](https://crates.io/crates/clankers-ros2) | [docs](https://docs.rs/clankers-ros2) | ROS-free core: sim backend + message/QoS types |
 | [`clankers-data`](https://crates.io/crates/clankers-data) | [![crates.io](https://img.shields.io/crates/v/clankers-data.svg)](https://crates.io/crates/clankers-data) | [docs](https://docs.rs/clankers-data) | MCAP logging, replay, inspection |
-| [`clankers-ml`](https://crates.io/crates/clankers-ml) | [![crates.io](https://img.shields.io/crates/v/clankers-ml.svg)](https://crates.io/crates/clankers-ml) | [docs](https://docs.rs/clankers-ml) | ONNX inference and model deployment |
-| [`clankers-tensor`](https://crates.io/crates/clankers-tensor) | [![crates.io](https://img.shields.io/crates/v/clankers-tensor.svg)](https://crates.io/crates/clankers-tensor) | [docs](https://docs.rs/clankers-tensor) | Robotics-focused tensor utilities |
+| [`clankers-ml`](https://crates.io/crates/clankers-ml) | [![crates.io](https://img.shields.io/crates/v/clankers-ml.svg)](https://crates.io/crates/clankers-ml) | [docs](https://docs.rs/clankers-ml) | Optimized inference — `Model`, backends, validation |
+| [`clankers-tensor`](https://crates.io/crates/clankers-tensor) | [![crates.io](https://img.shields.io/crates/v/clankers-tensor.svg)](https://crates.io/crates/clankers-tensor) | [docs](https://docs.rs/clankers-tensor) | Zero-copy `TensorView`s, `ImageTensor`, preprocessing |
 | [`clankers-geometry`](https://crates.io/crates/clankers-geometry) | [![crates.io](https://img.shields.io/crates/v/clankers-geometry.svg)](https://crates.io/crates/clankers-geometry) | [docs](https://docs.rs/clankers-geometry) | Math, transforms, and frames |
 | [`clankers-runtime`](https://crates.io/crates/clankers-runtime) | [![crates.io](https://img.shields.io/crates/v/clankers-runtime.svg)](https://crates.io/crates/clankers-runtime) | [docs](https://docs.rs/clankers-runtime) | Execution, scheduling, observability |
 | [`clankers-testing`](https://crates.io/crates/clankers-testing) | [![crates.io](https://img.shields.io/crates/v/clankers-testing.svg)](https://crates.io/crates/clankers-testing) | [docs](https://docs.rs/clankers-testing) | Replay-based testing tools |

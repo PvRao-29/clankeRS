@@ -1,6 +1,6 @@
 # Model Validation
 
-`clankers validate-model` compares ONNX runtime output against a stored PyTorch reference (`expected_output.json`). PyTorch is not required at validation time — references are generated offline.
+`clankers validate-model` compares ONNX runtime output against a stored PyTorch reference (`expected_output.json`). It runs inference through the same [`Model`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html) path your nodes use. PyTorch is not required at validation time — references are generated offline.
 
 ## Prerequisites
 
@@ -52,3 +52,13 @@ python3 scripts/make_sample_models.py
 ```
 
 See also [PyTorch to ONNX](pytorch_to_onnx.md).
+
+## Benchmark on target hardware
+
+After validation passes, measure latency and copy stats on your machine:
+
+```bash
+clankers bench --model models/policy.onnx --warmup 5 --iters 100
+```
+
+Reports p50/p95/p99 latency plus `clankers_copies` (extra copies clankeRS performs before handing tensors to the backend).

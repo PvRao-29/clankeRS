@@ -29,7 +29,7 @@ For ARM robot computers, use `cross` or a target-specific toolchain. ONNX Runtim
 
 1. `clankers validate-model` passed on representative inputs
 2. Replay tests pass in CI
-3. Latency within budget on target hardware
+3. Latency within budget on target hardware (`clankers bench` for p50/p95/p99 + copy stats)
 4. MCAP logging enabled for field debugging (when `record_mcap` support lands)
 
 ## Related docs

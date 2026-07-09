@@ -1,25 +1,49 @@
 # Architecture
 
-clankeRS is organized as a Cargo workspace of focused crates (package names are lowercase `clankers-*`; the product name is **clankeRS**). All workspace crates are published on [crates.io](https://crates.io/crates/clankers) at v0.1.1; most applications depend on the `clankers` facade crate.
+clankeRS is organized as a Cargo workspace of focused crates (package names are lowercase `clankers-*`; the product name is **clankeRS**). All workspace crates are published on [crates.io](https://crates.io/crates/clankers) at v0.1.2; most applications depend on the `clankers` facade crate.
 
 | Crate | Responsibility |
 |-------|----------------|
 | `clankers` | Top-level re-exports and prelude |
 | `clankers-core` | Errors, config, timestamps, RobotContext |
-| `clankers-cli` | Command-line interface |
+| `clankers-cli` | Command-line interface (`clankers bench`, `validate-model`, …) |
 | `clankers-ros2` | ROS 2 pub/sub (sim backend by default) |
 | `clankers-data` | MCAP read/write/replay/inspect |
-| `clankers-ml` | ONNX inference and model validation |
-| `clankers-tensor` | Image and point cloud preprocessing |
+| `clankers-ml` | Optimized inference — [`Model`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html) (main API), pluggable backends, validation |
+| `clankers-tensor` | Zero-copy [`TensorView`](https://docs.rs/clankers-tensor/latest/clankers_tensor/struct.TensorView.html)s, `ImageTensor`, preprocessing pipelines |
 | `clankers-testing` | Replay-based test framework |
 | `clankers-macros` | clankeRS proc macros: `#[clankers::node]`, `#[clankers::replay_test]` |
 | `clankers-geometry` | Poses, transforms, twists |
 | `clankers-runtime` | Metrics, deadlines, queue depth |
 
+## Inference stack
+
+Most nodes should use **`Model`** — the user-facing optimized inference runtime:
+
+```text
+Sensor buffer (camera frame, state vector)
+       │
+       ▼
+TensorView  (zero-copy borrow into clankeRS)
+       │
+       ▼
+Model::run_named  (named multi-input binding, profiling)
+       │
+       ▼
+InferenceEngine + BackendSession  (ONNX Runtime, Noop, …)
+       │
+       ▼
+NamedOutputs  (owned tensors keyed by ONNX output name)
+```
+
+[`InferenceEngine`](https://docs.rs/clankers-ml/latest/clankers_ml/inference/struct.InferenceEngine.html) sits underneath `Model` for power users: custom backends, allocation policies (`Preallocate` arena), `run_into` with preallocated outputs, and `strict_realtime` build gating.
+
+Copy accounting is explicit: `InferenceStats::clankers_copies` measures conversions clankeRS performs before handing tensors to the backend — not internal copies inside ONNX Runtime.
+
 ## Data flow
 
 ```
-ROS 2 topic → ImageMsg → ImageTensor → ONNX Model → DetectionArray → ROS 2 publish
+ROS 2 topic → ImageMsg → ImageTensor → TensorView → Model → DetectionArray → ROS 2 publish
                               ↓
                          MCAP record → Replay → Tests
 ```
@@ -28,5 +52,6 @@ ROS 2 topic → ImageMsg → ImageTensor → ONNX Model → DetectionArray → R
 
 1. **Compatibility first** — integrate with ROS 2, PyTorch, ONNX, MCAP
 2. **ONNX first** — default ML deployment path without LibTorch
-3. **Replay is first-class** — logs are test fixtures
-4. **Boring setup** — one-command templates and clear errors
+3. **Optimized inference by default** — `Model` + zero-copy `TensorView`s, not a bolt-on
+4. **Replay is first-class** — logs are test fixtures
+5. **Boring setup** — one-command templates and clear errors

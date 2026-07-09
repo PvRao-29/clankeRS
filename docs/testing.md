@@ -54,4 +54,4 @@ cargo test
 
 ## CI
 
-See `.github/workflows/ci.yml` for replay inspection in CI.
+See `.github/workflows/ci.yml` for the full gate: fmt, clippy, `cargo test --workspace` (including ONNX fixture integration tests and template compile checks), golden-path replay, and `cargo-deny`.

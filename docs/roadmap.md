@@ -1,6 +1,6 @@
 # Roadmap
 
-Published releases are on [crates.io](https://crates.io/crates/clankers) (currently v0.1.1). The items below track feature maturity inside the repo.
+Published releases are on [crates.io](https://crates.io/crates/clankers) (currently v0.1.2). The items below track feature maturity inside the repo.
 
 ## v0.1 — ROS 2 node + ONNX inference
 - [x] Rust workspace + crates.io publish
@@ -28,6 +28,19 @@ Published releases are on [crates.io](https://crates.io/crates/clankers) (curren
 - [x] `camera_perception_node` example
 - [x] Perception node template
 - [x] End-to-end tutorial
+
+## v0.1.2 — Optimized inference (current)
+
+Shipped on crates.io as **v0.1.2**:
+
+- [`Model`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html) as the primary optimized inference API (`builder`, `run_named`, `run_into`, `stats`)
+- Zero-copy [`TensorView`](https://docs.rs/clankers-tensor/latest/clankers_tensor/struct.TensorView.html) inputs via `clankers-tensor`
+- Modular [`InferenceEngine`](https://docs.rs/clankers-ml/latest/clankers_ml/inference/struct.InferenceEngine.html) + ONNX Runtime backend (power-user layer)
+- `clankers bench` — latency percentiles and copy/allocation accounting
+- ONNX fixture integration tests + template compile checks in CI
+- `camera_replay` and `perception-node` template migrated to `run_named`
+
+**Breaking changes from v0.1.1:** `Model::run` requires `&mut self`; `InferenceStats::copies` renamed to `clankers_copies`.
 
 ## v1.0 — Production-ready SDK
 - [x] Modular inference engine — backend-agnostic `InferenceEngine` over

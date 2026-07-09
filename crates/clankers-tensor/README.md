@@ -1,6 +1,6 @@
 <p align="center">
   <strong>clankers-tensor</strong><br>
-  <em>Robotics-focused tensor utilities for clankeRS</em>
+  <em>Zero-copy tensor views and robotics preprocessing for clankeRS</em>
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
 
 ---
 
-Bridge camera frames and point clouds into `ndarray` tensors with the preprocessing steps perception models expect — resize, normalize, and layout conversion.
+Bridge camera frames and point clouds into tensors with the preprocessing steps perception models expect — and pass them to [`Model::run_named`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html#method.run_named) as zero-copy [`TensorView`](https://docs.rs/clankers-tensor/latest/clankers_tensor/struct.TensorView.html)s.
 
 ## Install
 
@@ -28,34 +28,49 @@ clankers-tensor = "0.1"
 cargo add clankers-tensor
 ```
 
-## Example
+## Example — camera frame to inference
 
 ```rust
 use clankers_ros2::ImageMsg;
-use clankers_tensor::ImageTensor;
+use clankers_tensor::{DType, ImageTensor, Layout, Shape, TensorView};
 
+// Preprocess a ROS image message
 let frame = ImageMsg::new(640, 480, vec![128u8; 640 * 480 * 3]);
-
 let tensor = ImageTensor::from_ros_msg(&frame)?
     .resize(224, 224)?
     .normalize_imagenet()?
     .to_nchw()?;
 
-assert_eq!(tensor.shape(), vec![1, 3, 224, 224]);
-let flat = tensor.to_vec(); // feed into ONNX
+// Zero-copy view into the preprocessed buffer (no extra clone for inference)
+let shape = tensor.nchw_shape();
+let view = tensor.as_nchw_view(&shape)?;
+// model.run_named([("input", view)])?;
+
+// Or bind raw sensor bytes directly (e.g. from MCAP replay)
+let raw = frame.data.as_slice();
+let hwc = TensorView::from_slice(
+    raw,
+    DType::U8,
+    &Shape::from([frame.height as usize, frame.width as usize, 3]),
+    Layout::HWC,
+)?;
 ```
 
 ## Key types
 
 | Type | Role |
 |------|------|
-| `ImageTensor` | `sensor_msgs`-style image → `f32` tensor |
+| `TensorView` / `TensorViewMut` | Zero-copy borrowed tensor slices for inference I/O |
+| `Tensor` | Owned tensor buffer |
+| `ImageTensor` | `sensor_msgs`-style image → preprocessed `f32` tensor |
 | `PointCloudTensor` | XYZ point cloud buffers |
-| `DataLayout`, `DType` | NHWC / NCHW and dtype metadata |
+| `Shape`, `Layout`, `DType` | Shape metadata, NHWC/NCHW layouts, dtypes |
+| `TensorArena` | Scratch allocation for hot inference loops |
 
 ## Learn more
 
 - [Installation](https://github.com/PvRao-29/clankeRS/blob/main/docs/installation.md)
+- [Architecture — inference stack](https://github.com/PvRao-29/clankeRS/blob/main/docs/architecture.md)
 - [Camera perception tutorial](https://github.com/PvRao-29/clankeRS/blob/main/docs/camera_perception_tutorial.md)
 
 ## License

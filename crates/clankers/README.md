@@ -50,16 +50,19 @@ cargo install clankers-cli
 
 ## Quick example
 
-A minimal perception node: subscribe to camera frames, run ONNX, publish detections.
+A minimal perception node: subscribe to camera frames, run ONNX with zero-copy inputs, publish detections.
 
 ```rust
 use clankers::prelude::*;
 
 #[clankers::node]
 async fn perception(ctx: RobotContext) -> RobotResult<()> {
-    let model = Model::load(ctx.resolve_path("models/detector.onnx"))?;
-    let node = RobotNode::new(ctx.node_name().as_str()).await?;
+    let model_cfg = ctx.model_config("detector")?;
+    let model_path = ctx.resolve_path(&model_cfg.path);
+    let mut model = ModelBuilder::from_config(&model_cfg, model_path)?.build()?;
+    let input_name = model.engine().input_specs()[0].name.clone();
 
+    let node = RobotNode::new(ctx.node_name().as_str()).await?;
     let mut images = node
         .subscribe::<ImageMsg>("/camera/image_raw", QosProfile::sensor_data())
         .await?;
@@ -73,7 +76,9 @@ async fn perception(ctx: RobotContext) -> RobotResult<()> {
             .normalize_imagenet()?
             .to_nchw()?;
 
-        let output = model.run(&tensor.to_vec())?;
+        let shape = tensor.nchw_shape();
+        let view = tensor.as_nchw_view(&shape)?;
+        let outputs = model.run_named([(input_name.as_str(), view)])?;
 
         detections_pub
             .publish(DetectionArray {
@@ -108,8 +113,8 @@ One dependency pulls in the full SDK surface:
 | Module | Highlights |
 |--------|------------|
 | `clankers::ros2` | `RobotNode`, pub/sub, `ImageMsg`, `DetectionArray`, QoS profiles |
-| `clankers::ml` | ONNX `Model` loading and inference |
-| `clankers::tensor` | `ImageTensor` — resize, normalize, layout conversion |
+| `clankers::ml` | Optimized `Model` inference, backends, validation |
+| `clankers::tensor` | `TensorView` zero-copy views, `ImageTensor` preprocessing |
 | `clankers::data` | MCAP `Replay`, logging, inspection |
 | `clankers::testing` | `ReplayContext`, replay assertions |
 | `clankers::runtime` | `RobotRuntime`, metrics, scheduling |
@@ -134,7 +139,7 @@ One dependency pulls in the full SDK surface:
   deploy as a ROS 2 node
 ```
 
-## Honest scope (v0.1)
+## Honest scope (v0.1.2)
 
 - **Sim pub/sub works out of the box** — no ROS 2 install required for development and tests.
 - **Real DDS / `rclrs`** is available from the [GitHub repo](https://github.com/PvRao-29/clankeRS) as colcon packages under `ros2/` (ROS 2 Humble). It does not ship through this crate.

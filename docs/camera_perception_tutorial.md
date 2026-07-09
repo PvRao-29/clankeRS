@@ -99,4 +99,6 @@ cargo run --release -p clankers --example camera_replay
 clankers demo camera-perception
 ```
 
+The `camera_replay` example binds camera frames as zero-copy [`TensorView`](https://docs.rs/clankers-tensor/latest/clankers_tensor/struct.TensorView.html)s via `Model::run_named` — the same pattern used in the `perception-node` template.
+
 See [Getting started](getting_started.md) for the crates.io-first setup.
