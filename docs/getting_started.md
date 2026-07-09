@@ -1,6 +1,6 @@
 # Getting Started
 
-clankeRS is published on [crates.io](https://crates.io/crates/clankers) at **v0.1.3**, so you can build robot nodes without cloning this repository.
+clankeRS is published on [crates.io](https://crates.io/crates/clankers) at **v0.1.4**, so you can build robot nodes without cloning this repository.
 
 ## Requirements
 

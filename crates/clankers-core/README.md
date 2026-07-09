@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <a href="https://crates.io/crates/clankers-core"><img src="https://img.shields.io/crates/v/clankers-core.svg?style=flat-square" alt="crates.io"></a>
+  <a href="https://crates.io/crates/clankers-core"><img src="https://img.shields.io/static/v1?label=crates.io&message=v0.1.4&color=orange&style=flat-square" alt="crates.io"></a>
   <a href="https://docs.rs/clankers-core"><img src="https://docs.rs/clankers-core/badge.svg?style=flat-square" alt="docs.rs"></a>
   <a href="https://github.com/PvRao-29/clankeRS/blob/main/LICENSE"><img src="https://img.shields.io/crates/l/clankers-core.svg?style=flat-square" alt="MIT license"></a>
 </p>

@@ -1,6 +1,6 @@
 # Architecture
 
-clankeRS is organized as a Cargo workspace of focused crates (package names are lowercase `clankers-*`; the product name is **clankeRS**). All workspace crates are published on [crates.io](https://crates.io/crates/clankers) at v0.1.3; most applications depend on the `clankers` facade crate.
+clankeRS is organized as a Cargo workspace of focused crates (package names are lowercase `clankers-*`; the product name is **clankeRS**). All workspace crates are published on [crates.io](https://crates.io/crates/clankers) at v0.1.4; most applications depend on the `clankers` facade crate.
 
 | Crate | Responsibility |
 |-------|----------------|

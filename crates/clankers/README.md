@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-  <a href="https://crates.io/crates/clankers"><img src="https://img.shields.io/crates/v/clankers.svg?style=flat-square" alt="crates.io"></a>
+  <a href="https://crates.io/crates/clankers"><img src="https://img.shields.io/static/v1?label=crates.io&message=v0.1.4&color=orange&style=flat-square" alt="crates.io"></a>
   <a href="https://docs.rs/clankers"><img src="https://docs.rs/clankers/badge.svg?style=flat-square" alt="docs.rs"></a>
   <a href="https://github.com/PvRao-29/clankeRS/blob/main/LICENSE"><img src="https://img.shields.io/crates/l/clankers.svg?style=flat-square" alt="MIT license"></a>
 </p>
@@ -139,7 +139,7 @@ One dependency pulls in the full SDK surface:
   deploy as a ROS 2 node
 ```
 
-## Honest scope (v0.1.3)
+## Honest scope (v0.1.4)
 
 - **Sim pub/sub works out of the box** — no ROS 2 install required for development and tests.
 - **Real DDS / `rclrs`** is available from the [GitHub repo](https://github.com/PvRao-29/clankeRS) as colcon packages under `ros2/` (ROS 2 Humble). It does not ship through this crate.

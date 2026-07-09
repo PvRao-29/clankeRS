@@ -1,6 +1,6 @@
 # Roadmap
 
-Published releases are on [crates.io](https://crates.io/crates/clankers) (currently v0.1.3). The items below track feature maturity inside the repo.
+Published releases are on [crates.io](https://crates.io/crates/clankers) (currently v0.1.4). The items below track feature maturity inside the repo.
 
 
 
@@ -17,11 +17,18 @@ Shipped on crates.io as **v0.1.2**:
 
 **Breaking changes from v0.1.1:** `Model::run` requires `&mut self`; `InferenceStats::copies` renamed to `clankers_copies`.
 
-## v0.1.3 — Documentation polish (current)
+## v0.1.3 — Documentation polish
 
 Shipped on crates.io as **v0.1.3**:
 
 - Expanded [docs.rs](https://docs.rs/clankers) crate guides with quick-start examples on every crate
+
+## v0.1.4 — Badge and docs fixes (current)
+
+Shipped on crates.io as **v0.1.4**:
+
+- Fixed crates.io README badges (shields.io version pins 404; use static or unversioned URLs)
+- Added `clankers-cli` library target so docs.rs builds succeed
 
 ## v1.0 — Production-ready SDK
 - [x] Modular inference engine — backend-agnostic `InferenceEngine` over
