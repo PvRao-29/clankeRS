@@ -41,7 +41,7 @@ use clankers_core::{RobotError, RobotResult};
 
 /// Legacy flat-buffer inference backend.
 #[deprecated(
-    since = "0.2.0",
+    since = "0.1.2",
     note = "use `clankers_ml::Model` or `clankers_ml::inference::InferenceEngine` with an `InferenceBackend` instead"
 )]
 pub trait ModelBackend: Send + Sync {

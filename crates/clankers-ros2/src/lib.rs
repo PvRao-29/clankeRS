@@ -1,21 +1,42 @@
-//! ROS 2 integration for clankeRS — the ROS-free shared core.
+//! # ROS 2 integration (sim backend + shared types)
 //!
-//! This crate is a member of the main Cargo workspace and builds with plain
-//! `cargo build` (no ROS 2 install). It provides:
+//! This crate builds with plain `cargo build` — **no ROS 2 install required**.
 //!
-//! * the in-memory **sim** backend (`RobotNode`/`Publisher`/`Subscriber`) used
-//!   by CI, examples, and replay tests, and
-//! * the transport-agnostic message + QoS types (`ImageMsg`, `DetectionArray`,
-//!   `QosProfile`, `WireType`, ...) shared by *both* backends.
+//! It provides:
 //!
-//! The real rclrs/DDS backend does **not** live here — it can only be compiled
-//! inside a colcon workspace (the ROS message crates are yanked on crates.io, so
-//! declaring them anywhere the main workspace resolves would break the ROS-free
-//! `cargo build`). It lives in a separate, checked-in colcon package,
-//! [`ros2/clankers-ros2-dds`](https://github.com/PvRao-29/clankeRS/tree/main/ros2/clankers-ros2-dds),
-//! which depends on *this* crate for the shared `message`/`qos` types and
-//! re-exports the same `RobotNode`/`Publisher`/`Subscriber` API. See
-//! `docs/ros2_integration.md`.
+//! * the in-memory **sim** pub/sub backend ([`RobotNode`], [`Publisher`], [`Subscriber`])
+//!   used by CI, examples, and replay tests, and
+//! * transport-agnostic message and QoS types ([`ImageMsg`], [`DetectionArray`],
+//!   [`QosProfile`]) shared by both sim and real DDS backends.
+//!
+//! ## Quick start — subscribe and publish
+//!
+//! ```no_run
+//! use clankers_ros2::{DetectionArray, ImageMsg, QosProfile, RobotNode};
+//!
+//! #[tokio::main]
+//! async fn main() -> clankers_core::RobotResult<()> {
+//!     let node = RobotNode::new("perception").await?;
+//!     let mut images = node
+//!         .subscribe::<ImageMsg>("/camera/image_raw", QosProfile::sensor_data())
+//!         .await?;
+//!     let _detections = node
+//!         .publish::<DetectionArray>("/detections", QosProfile::default())
+//!         .await?;
+//!
+//!     while let Some(_frame) = images.next().await {
+//!         // publish detections when your pipeline produces them
+//!     }
+//!     Ok(())
+//! }
+//! ```
+//!
+//! ## Real DDS / rclrs
+//!
+//! The production DDS backend is **not** in this crate (ROS message crates are yanked
+//! on crates.io). It lives in the checked-in colcon package
+//! [`ros2/clankers-ros2-dds`](https://github.com/PvRao-29/clankeRS/tree/main/ros2/clankers-ros2-dds)
+//! and re-exports the same API. See `docs/ros2_integration.md` in the repo.
 
 pub mod message;
 pub mod node;

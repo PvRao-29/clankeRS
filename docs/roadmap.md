@@ -1,35 +1,10 @@
 # Roadmap
 
-Published releases are on [crates.io](https://crates.io/crates/clankers) (currently v0.1.2). The items below track feature maturity inside the repo.
+Published releases are on [crates.io](https://crates.io/crates/clankers) (currently v0.1.3). The items below track feature maturity inside the repo.
 
-## v0.1 — ROS 2 node + ONNX inference
-- [x] Rust workspace + crates.io publish
-- [x] CLI skeleton
-- [x] Basic node template
-- [x] ONNX model loading
-- [x] Config loading
 
-## v0.2 — MCAP logging and replay
-- [x] MCAP read/write
-- [x] `clankers inspect` / `replay`
-- [x] Sample data
 
-## v0.3 — Model validation
-- [x] PyTorch export script
-- [x] `clankers validate-model`
-- [x] Numerical tolerance reporting
-
-## v0.4 — Replay-based testing
-- [x] `clankers-testing` crate
-- [x] `#[clankers::replay_test]` macro
-- [x] Assertion helpers
-
-## v0.5 — Polished perception demo
-- [x] `camera_perception_node` example
-- [x] Perception node template
-- [x] End-to-end tutorial
-
-## v0.1.2 — Optimized inference (current)
+## v0.1.2 — Optimized inference
 
 Shipped on crates.io as **v0.1.2**:
 
@@ -41,6 +16,12 @@ Shipped on crates.io as **v0.1.2**:
 - `camera_replay` and `perception-node` template migrated to `run_named`
 
 **Breaking changes from v0.1.1:** `Model::run` requires `&mut self`; `InferenceStats::copies` renamed to `clankers_copies`.
+
+## v0.1.3 — Documentation polish (current)
+
+Shipped on crates.io as **v0.1.3**:
+
+- Expanded [docs.rs](https://docs.rs/clankers) crate guides with quick-start examples on every crate
 
 ## v1.0 — Production-ready SDK
 - [x] Modular inference engine — backend-agnostic `InferenceEngine` over

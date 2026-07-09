@@ -1,16 +1,55 @@
-//! Robotics-focused tensor utilities for clankeRS.
+//! # Robotics-focused tensor utilities
 //!
-//! The crate is built around a small set of zero-copy primitives:
+//! Zero-copy tensor views for inference, plus high-level image preprocessing helpers.
 //!
-//! * [`DType`], [`Shape`]/[`ShapeSpec`], [`Layout`], and [`Device`] describe a
-//!   tensor's element type, extent, memory order, and placement.
-//! * [`TensorView`] / [`TensorViewMut`] borrow memory the caller already owns
-//!   (a decoded frame, a state vector, an arena slot) without copying.
-//! * [`Tensor`] owns an 8-byte-aligned [`buffer::Buffer`] and is what inference
-//!   returns.
+//! ## Zero-copy inference path
 //!
-//! [`ImageTensor`] is the existing higher-level image preprocessing helper and
-//! is retained during the migration to the view/owned primitives.
+//! Borrow sensor memory directly — no extra clone before handing tensors to
+//! [`clankers_ml::Model::run_named`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html#method.run_named):
+//!
+//! ```no_run
+//! use clankers_tensor::{DType, Layout, Shape, TensorView};
+//!
+//! // Camera frame bytes borrowed from replay or a driver buffer
+//! let frame: &[u8] = &[0u8; 480 * 640 * 3];
+//! let shape = Shape::from([480, 640, 3]);
+//! let view = TensorView::from_slice(
+//!     frame,
+//!     DType::U8,
+//!     &shape,
+//!     Layout::Contiguous,
+//! )?;
+//! # Ok::<(), clankers_tensor::TensorError>(())
+//! ```
+//!
+//! ## Image preprocessing
+//!
+//! [`ImageTensor`] converts ROS-style [`clankers_ros2::ImageMsg`] into normalized NCHW
+//! `f32` tensors, then exposes [`ImageTensor::as_nchw_view`] for zero-copy binding:
+//!
+//! ```no_run
+//! use clankers_ros2::ImageMsg;
+//! use clankers_tensor::ImageTensor;
+//!
+//! let frame = ImageMsg::new(640, 480, vec![128u8; 640 * 480 * 3]);
+//! let tensor = ImageTensor::from_ros_msg(&frame)?
+//!     .resize(224, 224)?
+//!     .normalize_imagenet()?
+//!     .to_nchw()?;
+//! let shape = tensor.nchw_shape();
+//! let view = tensor.as_nchw_view(&shape)?;
+//! # Ok::<(), clankers_core::RobotError>(())
+//! ```
+//!
+//! ## Core primitives
+//!
+//! | Type | Role |
+//! |------|------|
+//! | [`TensorView`] / [`TensorViewMut`] | Borrowed slices for inference I/O |
+//! | [`Tensor`] | Owned buffer returned from inference |
+//! | [`Shape`] / [`ShapeSpec`] | Static or dynamic-rank shapes |
+//! | [`DType`] / [`Layout`] | Element type and memory order |
+//! | [`TensorArena`] | Scratch allocation for hot loops |
 
 pub mod adapters;
 pub mod arena;

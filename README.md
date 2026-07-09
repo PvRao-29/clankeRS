@@ -1,7 +1,7 @@
 # clankeRS
 
 <p align="center">
-  <a href="https://crates.io/crates/clankers"><img src="https://img.shields.io/crates/v/clankers.svg" alt="crates.io"></a>
+  <a href="https://crates.io/crates/clankers"><img src="https://img.shields.io/crates/v/clankers/0.1.3.svg" alt="crates.io"></a>
   <a href="https://docs.rs/clankers"><img src="https://docs.rs/clankers/badge.svg" alt="docs.rs"></a>
   <a href="LICENSE"><img src="https://img.shields.io/crates/l/clankers.svg" alt="MIT license"></a>
 </p>
@@ -209,21 +209,21 @@ This exports two small deterministic PyTorch models to ONNX and writes `expected
 
 ## Crates
 
-All crates are published on crates.io at **v0.1.2**. Most users only need the top-level [`clankers`](https://crates.io/crates/clankers) facade (or the `clankers-cli` binary); the rest are re-exported through it.
+All crates are published on crates.io at **v0.1.3**. Most users only need the top-level [`clankers`](https://crates.io/crates/clankers) facade (or the `clankers-cli` binary); the rest are re-exported through it.
 
 | Crate | crates.io | docs.rs | Purpose |
 |-------|-----------|---------|---------|
-| [`clankers`](https://crates.io/crates/clankers) | [![crates.io](https://img.shields.io/crates/v/clankers.svg)](https://crates.io/crates/clankers) | [docs](https://docs.rs/clankers) | Umbrella SDK facade — start here |
-| [`clankers-cli`](https://crates.io/crates/clankers-cli) | [![crates.io](https://img.shields.io/crates/v/clankers-cli.svg)](https://crates.io/crates/clankers-cli) | [docs](https://docs.rs/clankers-cli) | `clankers` command-line tool |
-| [`clankers-core`](https://crates.io/crates/clankers-core) | [![crates.io](https://img.shields.io/crates/v/clankers-core.svg)](https://crates.io/crates/clankers-core) | [docs](https://docs.rs/clankers-core) | Core primitives and types |
-| [`clankers-ros2`](https://crates.io/crates/clankers-ros2) | [![crates.io](https://img.shields.io/crates/v/clankers-ros2.svg)](https://crates.io/crates/clankers-ros2) | [docs](https://docs.rs/clankers-ros2) | ROS-free core: sim backend + message/QoS types |
-| [`clankers-data`](https://crates.io/crates/clankers-data) | [![crates.io](https://img.shields.io/crates/v/clankers-data.svg)](https://crates.io/crates/clankers-data) | [docs](https://docs.rs/clankers-data) | MCAP logging, replay, inspection |
-| [`clankers-ml`](https://crates.io/crates/clankers-ml) | [![crates.io](https://img.shields.io/crates/v/clankers-ml.svg)](https://crates.io/crates/clankers-ml) | [docs](https://docs.rs/clankers-ml) | Optimized inference — `Model`, backends, validation |
-| [`clankers-tensor`](https://crates.io/crates/clankers-tensor) | [![crates.io](https://img.shields.io/crates/v/clankers-tensor.svg)](https://crates.io/crates/clankers-tensor) | [docs](https://docs.rs/clankers-tensor) | Zero-copy `TensorView`s, `ImageTensor`, preprocessing |
-| [`clankers-geometry`](https://crates.io/crates/clankers-geometry) | [![crates.io](https://img.shields.io/crates/v/clankers-geometry.svg)](https://crates.io/crates/clankers-geometry) | [docs](https://docs.rs/clankers-geometry) | Math, transforms, and frames |
-| [`clankers-runtime`](https://crates.io/crates/clankers-runtime) | [![crates.io](https://img.shields.io/crates/v/clankers-runtime.svg)](https://crates.io/crates/clankers-runtime) | [docs](https://docs.rs/clankers-runtime) | Execution, scheduling, observability |
-| [`clankers-testing`](https://crates.io/crates/clankers-testing) | [![crates.io](https://img.shields.io/crates/v/clankers-testing.svg)](https://crates.io/crates/clankers-testing) | [docs](https://docs.rs/clankers-testing) | Replay-based testing tools |
-| [`clankers-macros`](https://crates.io/crates/clankers-macros) | [![crates.io](https://img.shields.io/crates/v/clankers-macros.svg)](https://crates.io/crates/clankers-macros) | [docs](https://docs.rs/clankers-macros) | Proc macros for nodes and replay tests |
+| [`clankers`](https://crates.io/crates/clankers) | [![crates.io](https://img.shields.io/crates/v/clankers/0.1.3.svg)](https://crates.io/crates/clankers) | [docs](https://docs.rs/clankers) | Umbrella SDK facade — start here |
+| [`clankers-cli`](https://crates.io/crates/clankers-cli) | [![crates.io](https://img.shields.io/crates/v/clankers-cli/0.1.3.svg)](https://crates.io/crates/clankers-cli) | [docs](https://docs.rs/clankers-cli) | `clankers` command-line tool |
+| [`clankers-core`](https://crates.io/crates/clankers-core) | [![crates.io](https://img.shields.io/crates/v/clankers-core/0.1.3.svg)](https://crates.io/crates/clankers-core) | [docs](https://docs.rs/clankers-core) | Core primitives and types |
+| [`clankers-ros2`](https://crates.io/crates/clankers-ros2) | [![crates.io](https://img.shields.io/crates/v/clankers-ros2/0.1.3.svg)](https://crates.io/crates/clankers-ros2) | [docs](https://docs.rs/clankers-ros2) | ROS-free core: sim backend + message/QoS types |
+| [`clankers-data`](https://crates.io/crates/clankers-data) | [![crates.io](https://img.shields.io/crates/v/clankers-data/0.1.3.svg)](https://crates.io/crates/clankers-data) | [docs](https://docs.rs/clankers-data) | MCAP logging, replay, inspection |
+| [`clankers-ml`](https://crates.io/crates/clankers-ml) | [![crates.io](https://img.shields.io/crates/v/clankers-ml/0.1.3.svg)](https://crates.io/crates/clankers-ml) | [docs](https://docs.rs/clankers-ml) | Optimized inference — `Model`, backends, validation |
+| [`clankers-tensor`](https://crates.io/crates/clankers-tensor) | [![crates.io](https://img.shields.io/crates/v/clankers-tensor/0.1.3.svg)](https://crates.io/crates/clankers-tensor) | [docs](https://docs.rs/clankers-tensor) | Zero-copy `TensorView`s, `ImageTensor`, preprocessing |
+| [`clankers-geometry`](https://crates.io/crates/clankers-geometry) | [![crates.io](https://img.shields.io/crates/v/clankers-geometry/0.1.3.svg)](https://crates.io/crates/clankers-geometry) | [docs](https://docs.rs/clankers-geometry) | Math, transforms, and frames |
+| [`clankers-runtime`](https://crates.io/crates/clankers-runtime) | [![crates.io](https://img.shields.io/crates/v/clankers-runtime/0.1.3.svg)](https://crates.io/crates/clankers-runtime) | [docs](https://docs.rs/clankers-runtime) | Execution, scheduling, observability |
+| [`clankers-testing`](https://crates.io/crates/clankers-testing) | [![crates.io](https://img.shields.io/crates/v/clankers-testing/0.1.3.svg)](https://crates.io/crates/clankers-testing) | [docs](https://docs.rs/clankers-testing) | Replay-based testing tools |
+| [`clankers-macros`](https://crates.io/crates/clankers-macros) | [![crates.io](https://img.shields.io/crates/v/clankers-macros/0.1.3.svg)](https://crates.io/crates/clankers-macros) | [docs](https://docs.rs/clankers-macros) | Proc macros for nodes and replay tests |
 
 > The real `rclrs`/DDS packages under [`ros2/`](ros2/) are **not** published to crates.io — they build only inside a colcon workspace (see [docs/ros2_integration.md](docs/ros2_integration.md)).
 
