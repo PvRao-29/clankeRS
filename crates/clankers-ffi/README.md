@@ -38,5 +38,6 @@ Build the native library:
 cargo build -p clankers-ffi --release
 ```
 
-The generated header is written to `cpp/include/clankers/clankers.h` during the
-build. See [`cpp/README.md`](https://github.com/PvRao-29/clankeRS/blob/main/cpp/README.md) for the idiomatic C++17 wrappers.
+The generated header is written to `include/clankers/clankers.h` inside this crate
+during the build (and synced into `cpp/include/clankers/` when built from the clankeRS
+tree). See [`cpp/README.md`](https://github.com/PvRao-29/clankeRS/blob/main/cpp/README.md) for the idiomatic C++17 wrappers.

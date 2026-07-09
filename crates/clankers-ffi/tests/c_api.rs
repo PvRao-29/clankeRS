@@ -293,12 +293,19 @@ fn onnx_policy_single_f32_loads_and_runs() {
 #[test]
 fn c_header_compiles() {
     let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
-    let header = manifest_dir.join("../../cpp/include/clankers/clankers.h");
-    assert!(
-        header.exists(),
-        "header should be generated at build time: {}",
-        header.display()
-    );
+    let in_crate = manifest_dir.join("include/clankers/clankers.h");
+    let cpp_tree = manifest_dir.join("../../cpp/include/clankers/clankers.h");
+    let header = if in_crate.is_file() {
+        in_crate
+    } else if cpp_tree.is_file() {
+        cpp_tree
+    } else {
+        panic!(
+            "clankers.h not found at {} or {}; run `cargo build -p clankers-ffi` first",
+            in_crate.display(),
+            cpp_tree.display()
+        );
+    };
     let smoke = manifest_dir.join("tests/c_header_smoke.c");
     let out = std::env::temp_dir().join("clankers_c_header_smoke.o");
     let status = std::process::Command::new("cc")

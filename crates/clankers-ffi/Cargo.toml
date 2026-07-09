@@ -6,7 +6,10 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+homepage.workspace = true
 authors.workspace = true
+keywords = ["robotics", "ffi", "onnx", "inference", "c-api"]
+categories = ["api-bindings", "science"]
 
 [lib]
 crate-type = ["rlib", "cdylib", "staticlib"]

@@ -24,3 +24,4 @@ docs/ISSUES.md
 ros2_ws/
 ros2/.cargo/
 cpp/build/
+crates/clankers-ffi/include/
