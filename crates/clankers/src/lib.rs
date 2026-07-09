@@ -3,12 +3,17 @@
 pub mod prelude;
 
 pub use clankers_core::{
-    ClankeRSConfig, LatencyStats, RobotContext, RobotError, RobotResult, Timestamp, TopicName,
+    ClankeRSConfig, LatencyStats, ModelBackendKind, RobotContext, RobotError, RobotResult,
+    Timestamp, TopicName,
 };
 pub use clankers_data::{InspectReport, McapLog, Replay, ReplayResult};
 pub use clankers_geometry::{Pose, Transform, Twist};
 pub use clankers_macros::{node, replay_test};
-pub use clankers_ml::{Model, ModelBuilder, ModelValidator, ValidationReport};
+pub use clankers_ml::{
+    engine_from_model_config, noop_engine_from_config, onnx_engine_from_config, ConfiguredEngine,
+    InferenceEngine, InferenceError, InferenceStats, Model, ModelBuilder, ModelEngine,
+    ModelValidator, NamedOutputs, RuntimeBackend, ValidationReport,
+};
 pub use clankers_ros2::{
     Detection, DetectionArray, ImageMsg, Publisher, QosProfile, RobotNode, Subscriber,
 };
@@ -17,10 +22,10 @@ pub use clankers_ros2::{
 // colcon package (ros2/clankers-ros2-dds) where messages arrive over DDS.
 pub use clankers_ros2::inject_message;
 pub use clankers_runtime::{RobotRuntime, RuntimeMetrics};
-pub use clankers_tensor::ImageTensor;
+pub use clankers_tensor::{ImageInput, ImageTensor, Shape, StateInput, Tensor, TensorView};
 pub use clankers_testing::{
     assert_dropped_messages, assert_max_latency, assert_no_panics, assert_topic_exists,
-    ReplayContext, ReplayTestResult,
+    AggregatedInferenceStats, ReplayContext, ReplayTestResult,
 };
 
 pub mod runtime {
@@ -37,6 +42,21 @@ pub mod data {
 
 pub mod ml {
     pub use clankers_ml::*;
+}
+
+/// Lower-level inference runtime used by [`Model`](clankers_ml::Model).
+///
+/// Most applications should use [`Model`](clankers_ml::Model). Construct an
+/// [`InferenceEngine`](clankers_ml::inference::InferenceEngine) directly when
+/// implementing custom backends, allocation policies, or advanced integrations.
+pub mod inference {
+    pub use clankers_ml::inference::*;
+}
+
+/// Inference backends and the tensor specs / capabilities they report.
+pub mod backend {
+    #[allow(deprecated)]
+    pub use clankers_ml::backend::*;
 }
 
 pub mod tensor {

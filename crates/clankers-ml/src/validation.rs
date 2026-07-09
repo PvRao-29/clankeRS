@@ -72,7 +72,7 @@ impl ModelValidator {
             .onnx_model
             .ok_or_else(|| clankers_core::RobotError::Model("onnx model path required".into()))?;
 
-        let model = Model::load(&onnx_path)?;
+        let mut model = Model::load(&onnx_path)?;
         let input_size = model.input_size();
         let input = load_sample_input(self.samples_dir.as_deref(), input_size);
 

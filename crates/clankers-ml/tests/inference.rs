@@ -6,6 +6,7 @@
 
 use clankers_ml::Model;
 
+#[cfg(feature = "onnxruntime")]
 fn sample_model(name: &str) -> std::path::PathBuf {
     std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../sample_data/models")
@@ -37,7 +38,7 @@ mod onnx {
 
     #[test]
     fn load_and_run_detector() {
-        let model = Model::load(sample_model("detector.onnx")).unwrap();
+        let mut model = Model::load(sample_model("detector.onnx")).unwrap();
         assert_eq!(model.metadata().backend, "onnxruntime");
 
         let size = model.input_size();

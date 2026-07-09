@@ -1,7 +1,9 @@
-//! North-star demo: camera perception node with ONNX inference.
+//! North-star demo: camera perception node with optimized `Model` inference.
 
+use std::path::PathBuf;
 use std::time::Instant;
 
+use clankers::ml::OnnxRuntimeBackend;
 use clankers::prelude::*;
 use clankers::ros2::inject_message;
 
@@ -20,24 +22,31 @@ async fn main() -> RobotResult<()> {
         .publish::<DetectionArray>("/detections", QosProfile::default())
         .await?;
 
-    // Load model if available, otherwise run dummy inference. Fall back to the
-    // ONNX detector shipped in sample_data so the demo runs real inference when
-    // launched from the workspace root.
-    let model = ctx
+    let model_path = ctx
         .model_config("detector")
         .ok()
-        .and_then(|cfg| Model::load(ctx.resolve_path(&cfg.path)).ok())
-        .or_else(|| Model::load("sample_data/models/detector.onnx").ok());
+        .map(|cfg| ctx.resolve_path(&cfg.path))
+        .filter(|p| p.exists())
+        .unwrap_or_else(|| PathBuf::from("sample_data/models/detector.onnx"));
 
-    if let Some(ref m) = model {
-        tracing::info!(path = %m.metadata().path.display(), "loaded ONNX model");
+    let mut model = match ctx.model_config("detector") {
+        Ok(cfg) => ModelBuilder::from_config(&cfg, model_path.clone())
+            .ok()
+            .and_then(|b| b.build().ok()),
+        Err(_) => Model::builder()
+            .backend(OnnxRuntimeBackend::default())
+            .load(model_path.clone())
+            .ok(),
+    };
+
+    let input_name = model.as_ref().map(|m| m.engine().input_specs()[0].name.clone());
+
+    if model.is_some() {
+        tracing::info!(path = %model_path.display(), "loaded ONNX model");
     } else {
-        tracing::warn!("no model configured — using dummy detections");
+        tracing::warn!("no model available — using dummy detections");
     }
 
-    // Sim backend: feed the node synthetic frames on the in-memory bus. The
-    // real-DDS equivalent (ros2/) instead receives images over DDS from a real
-    // publisher on /camera/image_raw, so it has no such injection point.
     tokio::spawn(async {
         for i in 0..10u32 {
             let w = 320u32;
@@ -59,11 +68,19 @@ async fn main() -> RobotResult<()> {
             .normalize_imagenet()?
             .to_nchw()?;
 
-        let detections = if let Some(ref m) = model {
-            let output = m.run(&tensor.to_vec())?;
-            output_to_detections(&output)
-        } else {
-            vec![Detection {
+        let detections = match (model.as_mut(), input_name.as_ref()) {
+            (Some(m), Some(name)) => {
+                let shape = tensor.nchw_shape();
+                let view = tensor.as_nchw_view(&shape)?;
+                let outputs = m.run_named([(name.as_str(), view)])?;
+                output_to_detections(
+                    &outputs
+                        .first()
+                        .ok_or_else(|| RobotError::Model("no outputs".into()))?
+                        .to_f32_vec()?,
+                )
+            }
+            _ => vec![Detection {
                 class_id: 0,
                 class_name: "dummy".into(),
                 score: 0.99,
@@ -71,7 +88,7 @@ async fn main() -> RobotResult<()> {
                 y: 0.1,
                 width: 0.5,
                 height: 0.5,
-            }]
+            }],
         };
 
         detections_pub
@@ -133,5 +150,7 @@ mod tests {
             .to_nchw()
             .unwrap();
         assert_eq!(tensor.shape(), vec![1, 3, 224, 224]);
+        let shape = tensor.nchw_shape();
+        assert!(tensor.as_nchw_view(&shape).is_ok());
     }
 }

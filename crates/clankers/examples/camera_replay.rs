@@ -1,18 +1,10 @@
-//! The clankeRS vertical slice, in one command:
-//!
-//! ```text
-//! cargo run -p clankers --example camera_replay
-//! ```
-//!
-//! It replays a real MCAP camera log through the full pipeline —
-//! decode frame → preprocess image → ONNX inference → detections →
-//! publish to a ROS 2 topic — and reports measured latency. Every number
-//! printed is real; nothing here is mocked.
+//! Replay MCAP camera frames through the optimized `Model` + `TensorView` path.
 
 use std::io::{IsTerminal, Write};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
+use clankers::ml::OnnxRuntimeBackend;
 use clankers::prelude::*;
 use clankers::ros2::RosMessage;
 
@@ -26,7 +18,11 @@ async fn main() -> RobotResult<()> {
     let log_path = root.join("sample_data/camera_log.mcap");
 
     println!("Loading {}...", file_name(&model_path));
-    let model = Model::load(&model_path)?;
+    let mut model = Model::builder()
+        .backend(OnnxRuntimeBackend::default())
+        .load(&model_path)?;
+
+    let input_name = model.engine().input_specs()[0].name.clone();
 
     println!("Opening {}...", file_name(&log_path));
     let replay = Replay::from_mcap(&log_path)?;
@@ -38,8 +34,6 @@ async fn main() -> RobotResult<()> {
         .collect();
     let total = frames.len();
 
-    // ROS 2 bridge (simulated bus): publish detections and subscribe to prove
-    // the messages are actually delivered end-to-end.
     let node = RobotNode::new("camera_replay").await?;
     let detections_pub = node
         .publish::<DetectionArray>(DETECTIONS_TOPIC, QosProfile::default())
@@ -58,9 +52,8 @@ async fn main() -> RobotResult<()> {
 
     for (i, rec) in frames.iter().enumerate() {
         let start = Instant::now();
-        match process_frame(&model, &rec.data) {
+        match process_frame(&mut model, &input_name, &rec.data) {
             Ok(detections) => {
-                // Measure preprocess + inference only (the runtime hot path).
                 latency.record(start.elapsed());
                 detections_pub
                     .publish(DetectionArray {
@@ -70,7 +63,6 @@ async fn main() -> RobotResult<()> {
                     })
                     .await?;
                 published += 1;
-                // Drain immediately so the bus buffer never grows unbounded.
                 if detections_sub.next().await.is_some() {
                     received += 1;
                 }
@@ -106,6 +98,12 @@ async fn main() -> RobotResult<()> {
     println!("  Detections received on {DETECTIONS_TOPIC}: {received}");
     println!("  Dropped:   {dropped}\n");
     println!("{}\n", latency.format_report());
+    if let Some(stats) = model.stats() {
+        println!(
+            "Last inference: clankeRS copies={}, allocations={}",
+            stats.clankers_copies, stats.allocations
+        );
+    }
 
     let passed = dropped == 0 && published as usize == total && received == published;
     if passed {
@@ -117,18 +115,23 @@ async fn main() -> RobotResult<()> {
     }
 }
 
-/// Decode one camera frame and run it through the full inference pipeline.
-fn process_frame(model: &Model, bytes: &[u8]) -> RobotResult<Vec<Detection>> {
+fn process_frame(model: &mut Model, input_name: &str, bytes: &[u8]) -> RobotResult<Vec<Detection>> {
     let image = ImageMsg::deserialize(bytes).map_err(RobotError::Other)?;
     let tensor = ImageTensor::from_ros_msg(&image)?
         .resize(224, 224)?
         .normalize_imagenet()?
         .to_nchw()?;
-    let output = model.run(&tensor.to_vec())?;
+    let shape = tensor.nchw_shape();
+    let view = tensor.as_nchw_view(&shape)?;
+    let outputs = model.run_named([(input_name, view)])?;
+    let output = outputs
+        .first()
+        .ok_or_else(|| RobotError::Model("model produced no outputs".into()))?
+        .to_f32_vec()
+        .map_err(RobotError::from)?;
     Ok(top_detection(&output))
 }
 
-/// Turn raw model logits into the single highest-scoring detection.
 fn top_detection(output: &[f32]) -> Vec<Detection> {
     let mut best = 0usize;
     for (i, &v) in output.iter().enumerate() {

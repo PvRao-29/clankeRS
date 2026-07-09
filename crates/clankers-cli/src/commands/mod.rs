@@ -1,4 +1,5 @@
 pub mod add_model;
+pub mod bench;
 pub mod compare;
 pub mod demo;
 pub mod import_pytorch;

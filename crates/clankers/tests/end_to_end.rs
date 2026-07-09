@@ -1,10 +1,12 @@
 //! End-to-end integration tests exercising the public `clankers` facade the way
 //! a downstream node would: MCAP write -> replay -> preprocess -> sim pub/sub,
-//! plus an ONNX inference wire-up gated on the default `ml` feature.
+//! plus optimized `Model` + `TensorView` inference.
 
 use clankers::data::McapWriter;
+use clankers::ml::OnnxRuntimeBackend;
 use clankers::prelude::*;
 use clankers::ros2::RosMessage;
+use clankers_tensor::{DType, Layout, Shape, TensorView};
 
 const TOPIC_IMAGE: &str = "/camera/image_raw";
 const TOPIC_DET: &str = "/e2e/detections";
@@ -24,6 +26,11 @@ fn write_image_log(path: &std::path::Path) {
         .unwrap();
     }
     w.finish().unwrap();
+}
+
+fn multi_input_fixture() -> std::path::PathBuf {
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../clankers-ml/tests/fixtures/onnx/policy_multi_input_image_state.onnx")
 }
 
 #[tokio::test]
@@ -47,7 +54,6 @@ async fn replay_preprocess_publish_pipeline() {
         .run(|msg| {
             let publisher = &publisher;
             async move {
-                // Decode the recorded image and run the preprocessing pipeline.
                 let image = ImageMsg::deserialize(&msg.data).map_err(RobotError::Other)?;
                 let _tensor = ImageTensor::from_ros_msg(&image)?
                     .resize(4, 4)?
@@ -78,7 +84,6 @@ async fn replay_preprocess_publish_pipeline() {
     assert_eq!(result.summary.input_messages, FRAMES as u64);
     assert_eq!(result.summary.dropped_messages, 0);
 
-    // Every published detection is delivered on the sim bus.
     for _ in 0..FRAMES {
         let det = detections.next().await.unwrap();
         assert_eq!(det.detections.len(), 1);
@@ -86,11 +91,44 @@ async fn replay_preprocess_publish_pipeline() {
 }
 
 #[cfg(feature = "ml")]
+#[test]
+fn golden_path_runs_named_zero_copy_inputs() {
+    if !multi_input_fixture().exists() {
+        eprintln!("skip: run python3 scripts/make_onnx_fixtures.py first");
+        return;
+    }
+
+    let mut model = Model::builder()
+        .backend(OnnxRuntimeBackend::default())
+        .load(multi_input_fixture())
+        .unwrap();
+
+    let image_bytes = vec![100u8; 1 * 64 * 64 * 3];
+    let state = vec![0.0f32; 12];
+    let image_shape = Shape::from([1, 64, 64, 3]);
+    let state_shape = Shape::from([1, 12]);
+    let image = TensorView::from_slice(
+        &image_bytes,
+        DType::U8,
+        &image_shape,
+        Layout::Contiguous,
+    )
+    .unwrap();
+    let state_view = TensorView::from_f32(&state, &state_shape).unwrap();
+
+    let outputs = model
+        .run_named([("image", image), ("state", state_view)])
+        .unwrap();
+    assert!(outputs.contains("action"));
+    assert_eq!(model.stats().unwrap().clankers_copies, 0);
+}
+
+#[cfg(feature = "ml")]
 #[tokio::test]
 async fn onnx_inference_through_facade() {
     let model_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../../sample_data/models/detector.onnx");
-    let model = Model::load(&model_path).unwrap();
+    let mut model = Model::load(&model_path).unwrap();
     let output = model.run(&vec![0.5f32; model.input_size()]).unwrap();
     assert!(!output.is_empty());
 }

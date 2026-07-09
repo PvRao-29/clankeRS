@@ -29,6 +29,45 @@ async fn replay_context_sees_topics() {
 }
 
 #[tokio::test]
+async fn replay_context_aggregates_inference_stats() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("camera_log.mcap");
+    generate_camera_log(&path).unwrap();
+
+    let ctx = ReplayContext::new(&path);
+    ctx.run_replay(|_msg| {
+        ctx.record_frame_inference(Duration::from_micros(500), 0, 1, 0);
+        async { Ok(()) }
+    })
+    .await
+    .unwrap();
+
+    let stats = ctx.inference_stats();
+    assert!(stats.frame_count > 0);
+    assert_eq!(stats.total_allocations, stats.frame_count as usize);
+}
+
+#[tokio::test]
+async fn replay_context_aggregates_frame_latency() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("camera_log.mcap");
+    generate_camera_log(&path).unwrap();
+
+    let ctx = ReplayContext::new(&path);
+    // The handler feeds each frame's inference latency into the context, which
+    // aggregates them (as a perception replay test using InferenceStats would).
+    ctx.run_replay(|_msg| {
+        ctx.record_frame_latency(Duration::from_micros(500));
+        async { Ok(()) }
+    })
+    .await
+    .unwrap();
+
+    let latency = ctx.latency();
+    assert!(latency.count() > 0, "per-frame latencies should be recorded");
+}
+
+#[tokio::test]
 async fn assertions_pass_on_clean_replay() {
     let (_dir, result) = run_sample().await;
     assert_topic_exists(&result, "/camera/image_raw").unwrap();

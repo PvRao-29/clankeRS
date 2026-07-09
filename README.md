@@ -80,6 +80,42 @@ These paths are exercised in CI (`.github/workflows/ci.yml`) from a fresh clone 
 
 See [docs/roadmap.md](docs/roadmap.md) for the full roadmap.
 
+## Optimized inference (default)
+
+clankeRS ships with an optimized Rust inference runtime. [`Model`](crates/clankers-ml/src/model.rs) is the main API — load a backend, pass zero-copy [`TensorView`](crates/clankers-tensor/src/view.rs) inputs, and read named outputs:
+
+```rust
+use clankers::ml::OnnxRuntimeBackend;
+use clankers::prelude::*;
+use clankers_tensor::{DType, Layout, Shape, TensorView};
+
+let mut model = Model::builder()
+    .backend(OnnxRuntimeBackend::default())
+    .load("models/policy.onnx")?;
+
+let image = TensorView::from_slice(
+    image_bytes,
+    DType::U8,
+    &Shape::from([1, 64, 64, 3]),
+    Layout::Contiguous,
+)?;
+let state = TensorView::from_f32(&state_f32, &Shape::from([1, 12]))?;
+
+let outputs = model.run_named([
+    ("image", image),
+    ("state", state),
+])?;
+```
+
+Single-input convenience (legacy templates still use this):
+
+```rust
+let mut model = Model::load("models/policy.onnx")?;
+let action = model.run(&input_f32)?;
+```
+
+[`InferenceEngine`](crates/clankers-ml/src/inference/engine.rs) is the lower-level runtime for custom backends, allocation policies, and advanced integrations. Most nodes should use `Model` only.
+
 ## Golden path
 
 The workflow clankeRS is building toward:

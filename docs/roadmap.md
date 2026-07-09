@@ -30,6 +30,15 @@ Published releases are on [crates.io](https://crates.io/crates/clankers) (curren
 - [x] End-to-end tutorial
 
 ## v1.0 — Production-ready SDK
+- [x] Modular inference engine — backend-agnostic `InferenceEngine` over
+  zero-copy `TensorView`s, with `InferenceBackend`/`BackendSession` traits, a
+  `NoopBackend` and a refactored `OnnxRuntimeBackend` (zero-copy f32 input path),
+  copy/allocation accounting (`InferenceStats`), preallocated-output `run_into`
+  with a `Preallocate` arena for zero-alloc hot loops, `strict_realtime` build
+  gating, ROS sensor adapters + composable pipeline transforms, `run_named`
+  multi-input binding, [`Model`] as the primary optimized inference API over the
+  engine, and a
+  `clankers bench` command reporting p50/p95/p99 latency and copies/allocations.
 - [ ] Stable public APIs
 - [~] Full rclrs integration — backend + typed `sensor_msgs/Image` bridge
   **compiled and run against ROS 2 Humble DDS** (verified 2026-07-07;

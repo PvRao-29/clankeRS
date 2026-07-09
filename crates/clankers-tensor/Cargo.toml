@@ -12,4 +12,5 @@ authors.workspace = true
 clankers-core.workspace = true
 clankers-ros2.workspace = true
 ndarray.workspace = true
+smallvec.workspace = true
 thiserror.workspace = true

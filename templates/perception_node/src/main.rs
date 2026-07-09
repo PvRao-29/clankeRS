@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use clankers::prelude::*;
 
 #[clankers::node]
@@ -14,20 +12,37 @@ async fn main(ctx: RobotContext) -> Result<()> {
 
     let model_cfg = ctx.model_config("detector")?;
     let model_path = ctx.resolve_path(&model_cfg.path);
-    let model = Model::load(&model_path)?;
+
+    let mut model = ModelBuilder::from_config(&model_cfg, model_path.clone())?.build()?;
+
+    let input_name = model.engine().input_specs()[0].name.clone();
 
     tracing::info!("clankeRS node: {}", ctx.node_name());
     tracing::info!("Loaded model {}", model_path.display());
 
     while let Some(frame) = camera.next().await {
-        let start = Instant::now();
         let tensor = ImageTensor::from_ros_msg(&frame)?
             .resize(224, 224)?
             .normalize_imagenet()?
             .to_nchw()?;
 
-        let output = model.run(&tensor.to_vec())?;
-        let detections = output_to_detections(&output);
+        let shape = tensor.nchw_shape();
+        let view = tensor.as_nchw_view(&shape)?;
+        let outputs = model.run_named([(input_name.as_str(), view)])?;
+        let detections = output_to_detections(
+            &outputs
+                .first()
+                .ok_or_else(|| RobotError::Model("model produced no outputs".into()))?
+                .to_f32_vec()?,
+        );
+
+        if let Some(stats) = model.stats() {
+            tracing::debug!(
+                latency_ms = stats.latency_ms(),
+                clankers_copies = stats.clankers_copies,
+                "inference"
+            );
+        }
 
         detections_pub
             .publish(DetectionArray {
@@ -36,8 +51,6 @@ async fn main(ctx: RobotContext) -> Result<()> {
                 detections,
             })
             .await?;
-
-        tracing::debug!(latency_ms = start.elapsed().as_secs_f64() * 1000.0, "inference");
     }
 
     Ok(())

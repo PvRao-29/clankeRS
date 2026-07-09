@@ -4,8 +4,8 @@ use clap::{Parser, Subcommand};
 use tracing_subscriber::EnvFilter;
 
 use commands::{
-    add_model, compare, import_pytorch, inspect, latency, new_project, record, replay, run, test,
-    validate_model, visualize,
+    add_model, bench, compare, import_pytorch, inspect, latency, new_project, record, replay, run,
+    test, validate_model, visualize,
 };
 
 const BRAND: &str = "clankeRS";
@@ -45,6 +45,19 @@ enum Commands {
     Record {
         #[arg(long, default_value = "logs/run.mcap")]
         output: String,
+    },
+    /// Benchmark model inference latency (p50/p95/p99) and copy/alloc accounting
+    Bench {
+        #[arg(long)]
+        model: String,
+        #[arg(long, default_value = "onnxruntime")]
+        backend: String,
+        #[arg(long)]
+        input: Option<String>,
+        #[arg(long, default_value = "50")]
+        warmup: u32,
+        #[arg(long, default_value = "1000")]
+        iters: u32,
     },
     /// Validate ONNX model output against PyTorch reference
     ValidateModel {
@@ -99,6 +112,13 @@ async fn main() -> anyhow::Result<()> {
         Commands::Replay { file, node } => replay::execute(&file, node.as_deref()).await?,
         Commands::Latency { file } => latency::execute(&file).await?,
         Commands::Compare { expected, actual } => compare::execute(&expected, &actual)?,
+        Commands::Bench {
+            model,
+            backend,
+            input,
+            warmup,
+            iters,
+        } => bench::execute(&model, &backend, input.as_deref(), warmup, iters)?,
         Commands::Record { output } => record::execute(&output)?,
         Commands::ValidateModel {
             pytorch,

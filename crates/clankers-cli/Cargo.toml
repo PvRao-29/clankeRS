@@ -17,6 +17,7 @@ anyhow.workspace = true
 clankers-core.workspace = true
 clankers-data.workspace = true
 clankers-ml.workspace = true
+clankers-tensor.workspace = true
 clap.workspace = true
 serde_json.workspace = true
 tokio.workspace = true

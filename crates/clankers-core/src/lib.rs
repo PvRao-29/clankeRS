@@ -6,7 +6,7 @@ pub mod error;
 pub mod latency;
 pub mod types;
 
-pub use config::ClankeRSConfig;
+pub use config::{ClankeRSConfig, ModelBackendKind, ModelConfig};
 pub use context::RobotContext;
 pub use error::{RobotError, RobotResult};
 pub use latency::LatencyStats;

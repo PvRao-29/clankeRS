@@ -1,11 +1,19 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
 
 use crate::error::{RobotError, RobotResult};
 use crate::types::NodeName;
+
+/// A model backend name from `clankeRS.toml` (`[model.*].backend`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ModelBackendKind {
+    OnnxRuntime,
+    Noop,
+}
 
 /// Full clankeRS project configuration from `clankeRS.toml`.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -93,6 +101,24 @@ fn default_backend() -> String {
 
 fn default_device() -> String {
     "cpu".to_string()
+}
+
+impl ModelConfig {
+    /// Parse the `backend` field into a known backend kind.
+    pub fn backend_kind(&self) -> RobotResult<ModelBackendKind> {
+        match self.backend.to_ascii_lowercase().as_str() {
+            "onnxruntime" | "onnx" => Ok(ModelBackendKind::OnnxRuntime),
+            "noop" => Ok(ModelBackendKind::Noop),
+            other => Err(RobotError::Model(format!(
+                "unknown model backend {other:?} (expected 'onnxruntime' or 'noop')"
+            ))),
+        }
+    }
+
+    /// `max_latency_ms` as a [`Duration`], if set.
+    pub fn max_latency(&self) -> Option<Duration> {
+        self.max_latency_ms.map(Duration::from_millis)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -241,5 +267,36 @@ level = "info"
         assert_eq!(config.node_name().as_str(), "camera_detector");
         assert!(config.model.contains_key("detector"));
         assert_eq!(config.topics.input["camera"].name, "/camera/image_raw");
+    }
+
+    #[test]
+    fn model_config_parses_backend_and_latency() {
+        let cfg = ModelConfig {
+            source_framework: None,
+            path: "m.onnx".into(),
+            backend: "ONNX".into(),
+            device: "cpu".into(),
+            warmup_runs: Some(3),
+            max_latency_ms: Some(20),
+            input: None,
+            output: None,
+        };
+        assert_eq!(cfg.backend_kind().unwrap(), ModelBackendKind::OnnxRuntime);
+        assert_eq!(cfg.max_latency(), Some(Duration::from_millis(20)));
+    }
+
+    #[test]
+    fn model_config_rejects_unknown_backend() {
+        let cfg = ModelConfig {
+            source_framework: None,
+            path: "m.onnx".into(),
+            backend: "tensorrt".into(),
+            device: "cpu".into(),
+            warmup_runs: None,
+            max_latency_ms: None,
+            input: None,
+            output: None,
+        };
+        assert!(cfg.backend_kind().is_err());
     }
 }

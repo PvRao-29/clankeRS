@@ -1,8 +1,49 @@
+//! Inference backends.
+//!
+//! The modern abstraction is a factory/session split: an [`InferenceBackend`]
+//! loads a model into a [`BackendSession`] which the [`InferenceEngine`] drives.
+//! [`NoopBackend`] is an identity implementation used throughout the tests; the
+//! ONNX Runtime backend (added in a later milestone) lives in an `onnxruntime`
+//! submodule behind the `onnxruntime` feature.
+//!
+//! The original flat-buffer [`ModelBackend`] trait is retained as a deprecated
+//! low-level shim. New code should use [`Model`](crate::Model) or
+//! [`InferenceEngine`](crate::inference::InferenceEngine).
+//!
+//! [`InferenceEngine`]: crate::inference::InferenceEngine
+
+mod capability;
+pub mod noop;
+#[cfg(feature = "onnxruntime")]
+pub mod onnxruntime;
+mod spec;
+mod tensor;
+mod traits;
+
+pub use capability::BackendCapabilities;
+pub use noop::{NoopBackend, NoopSession};
+#[cfg(feature = "onnxruntime")]
+pub use onnxruntime::{OnnxRuntimeBackend, OnnxSession};
+pub use spec::{describe_view, TensorSpec};
+pub use tensor::BackendTensor;
+pub use traits::{BackendRunStats, BackendSession, InferenceBackend};
+
+// ---------------------------------------------------------------------------
+// Legacy flat-buffer backend (deprecated).
+//
+// This is the original `run(&[f32])` abstraction predating the modular engine.
+// New code should use [`Model`](crate::Model) or [`InferenceEngine`](crate::inference::InferenceEngine).
+// ---------------------------------------------------------------------------
+
 use std::time::{Duration, Instant};
 
 use clankers_core::{RobotError, RobotResult};
 
-/// ML inference backend abstraction.
+/// Legacy flat-buffer inference backend.
+#[deprecated(
+    since = "0.2.0",
+    note = "use `clankers_ml::Model` or `clankers_ml::inference::InferenceEngine` with an `InferenceBackend` instead"
+)]
 pub trait ModelBackend: Send + Sync {
     fn name(&self) -> &str;
     fn input_shapes(&self) -> Vec<Vec<usize>>;
@@ -30,6 +71,10 @@ impl BackendKind {
 
 #[cfg(feature = "onnxruntime")]
 pub mod onnx {
+    //! Legacy single-tensor ONNX wrapper used by the `Model` compat path.
+    //!
+    //! The engine-native ONNX backend is [`super::onnxruntime`]; this module is
+    //! the thin `run(&[f32])` shim that predates it.
     use std::path::Path;
     use std::sync::Mutex;
 
@@ -37,7 +82,9 @@ pub mod onnx {
     use ort::session::Session;
     use ort::value::{Tensor, ValueType};
 
-    use super::*;
+    #[allow(deprecated)]
+    use super::ModelBackend;
+    use super::{RobotError, RobotResult};
 
     pub struct OnnxBackend {
         session: Mutex<Session>,
@@ -82,6 +129,7 @@ pub mod onnx {
         }
     }
 
+    #[allow(deprecated)]
     impl ModelBackend for OnnxBackend {
         fn name(&self) -> &str {
             "onnxruntime"
@@ -130,6 +178,7 @@ pub mod onnx {
     }
 }
 
+#[allow(deprecated)]
 pub fn load_onnx(path: impl AsRef<std::path::Path>) -> RobotResult<Box<dyn ModelBackend>> {
     #[cfg(feature = "onnxruntime")]
     {
