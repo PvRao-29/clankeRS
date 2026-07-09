@@ -157,10 +157,10 @@ jobs:
             clankers-macros
             clankers-ros2
             clankers-geometry
-            clankers-ml
             clankers-runtime
-            clankers-data
             clankers-tensor
+            clankers-ml
+            clankers-data
             clankers-testing
             clankers-cli
             clankers
