@@ -89,6 +89,7 @@ This is the same pipeline as `clankers demo camera-perception`, which must be ru
 - **Optimized ONNX inference** — load models with [`Model`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html), bind zero-copy [`TensorView`](https://docs.rs/clankers-tensor/latest/clankers_tensor/struct.TensorView.html) inputs, read named outputs
 - **MCAP replay** — inspect logs and write replay tests
 - **CLI tooling** — scaffold projects, validate models, benchmark latency (`clankers bench`)
+- **C++ inference SDK** — [`clankers-ffi`](https://crates.io/crates/clankers-ffi) C ABI + `cpp/` C++17 wrappers over the same ONNX engine; see [cpp/README.md](../cpp/README.md)
 
 Real DDS / `rclrs` integration is available from the repo under `ros2/` and builds only inside a colcon workspace. See [ROS 2 integration](ros2_integration.md).
 
@@ -127,3 +128,4 @@ let action = model.run(&input_f32)?;
 - Record and replay logs: [MCAP replay](mcap_replay.md)
 - Write replay tests: [Testing](testing.md)
 - Validate ONNX against PyTorch references: [Model validation](model_validation.md)
+- Use inference from C++: [C++ SDK](../cpp/README.md)

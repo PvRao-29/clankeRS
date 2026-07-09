@@ -64,6 +64,42 @@ jobs:
       - name: Test ml crate with the ONNX backend disabled
         run: cargo test -p clankers-ml --no-default-features
 
+      - name: Build clankers-ffi without ONNX (noop backend only)
+        run: cargo build -p clankers-ffi --no-default-features
+
+      - name: Test clankers-ffi without ONNX
+        run: cargo test -p clankers-ffi --no-default-features
+
+  # Gate 2b: C ABI + C++17 SDK build and smoke tests (Ubuntu, same as robot CI target).
+  cpp-sdk:
+    name: cpp sdk (ffi + cmake + examples)
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y cmake g++
+
+      - name: Build FFI + C++ SDK
+        run: bash scripts/build_cpp_sdk.sh
+
+      - name: Run zero-alloc hot loop example
+        run: ./cpp/build/zero_alloc_loop
+
+      - name: Run ONNX minimal inference example
+        run: >-
+          ./cpp/build/minimal_inference
+          crates/clankers-ml/tests/fixtures/onnx/policy_single_f32.onnx
+
   # Gate 3: documentation builds and intra-doc links resolve.
   docs:
     name: doc links
@@ -160,6 +196,7 @@ jobs:
             clankers-runtime
             clankers-tensor
             clankers-ml
+            clankers-ffi
             clankers-data
             clankers-testing
             clankers-cli

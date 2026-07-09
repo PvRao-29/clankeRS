@@ -2,7 +2,7 @@
 
 ## Install from crates.io
 
-All clankeRS crates are published on [crates.io](https://crates.io/crates/clankers) at **v0.1.4**. You do not need to clone the repository to use the SDK, scaffold projects, or run the CLI.
+All Rust SDK crates are published on [crates.io](https://crates.io/crates/clankers) at **v0.1.4**, including [`clankers-ffi`](https://crates.io/crates/clankers-ffi). You do not need to clone the repository to use the SDK, scaffold projects, run the CLI, or build the C ABI.
 
 ```bash
 # Add the SDK to your project
@@ -57,6 +57,22 @@ source /opt/ros/humble/setup.bash
 ```
 
 See [ROS 2 integration](ros2_integration.md) for the colcon workspace setup.
+
+## Optional: C++ SDK (v0.1.4)
+
+To build ONNX inference from C++ using the same engine as Rust:
+
+- [`clankers-ffi`](https://crates.io/crates/clankers-ffi) in your Cargo workspace (builds `libclankers_ffi`)
+- CMake 3.16+
+- C++17 compiler (`g++` or `clang++`)
+
+```bash
+cargo add clankers-ffi
+bash scripts/build_cpp_sdk.sh
+./cpp/build/minimal_inference path/to/model.onnx
+```
+
+Details: [cpp/README.md](../cpp/README.md). For deploy-time robots without a Rust toolchain, ship prebuilt `libclankers_ffi` artifacts and headers from your release build.
 
 ## Optional: Devcontainer
 

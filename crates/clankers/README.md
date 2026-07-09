@@ -1,6 +1,6 @@
 <p align="center">
   <strong>clankeRS</strong><br>
-  <em>Train in PyTorch. Deploy in Rust. Replay-test against real robot logs.</em>
+  <em>Train in PyTorch. Deploy in Rust or C++. Replay-test against real robot logs.</em>
 </p>
 
 <p align="center">
@@ -143,6 +143,7 @@ One dependency pulls in the full SDK surface:
 
 - **Sim pub/sub works out of the box** — no ROS 2 install required for development and tests.
 - **Real DDS / `rclrs`** is available from the [GitHub repo](https://github.com/PvRao-29/clankeRS) as colcon packages under `ros2/` (ROS 2 Humble). It does not ship through this crate.
+- **C++ inference** — [`clankers-ffi`](https://crates.io/crates/clankers-ffi) + `cpp/` wrap the same `InferenceEngine` as Rust. An rclcpp perception node is planned next.
 - APIs are early — expect changes before v1.0.
 
 ## Learn more
@@ -152,6 +153,7 @@ One dependency pulls in the full SDK surface:
 - [ROS 2 integration](https://github.com/PvRao-29/clankeRS/blob/main/docs/ros2_integration.md)
 - [Model validation](https://github.com/PvRao-29/clankeRS/blob/main/docs/model_validation.md)
 - [MCAP replay testing](https://github.com/PvRao-29/clankeRS/blob/main/docs/mcap_replay.md)
+- [C++ SDK](https://github.com/PvRao-29/clankeRS/blob/main/cpp/README.md)
 
 ## License
 

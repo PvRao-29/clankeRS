@@ -12,6 +12,7 @@ members = [
     "crates/clankers-macros",
     "crates/clankers-geometry",
     "crates/clankers-runtime",
+    "crates/clankers-ffi",
     "examples/ros2_pubsub_minimal",
     "examples/camera_perception_node",
 ]
@@ -48,6 +49,7 @@ clankers-testing = { path = "crates/clankers-testing", version = "0.1.4" }
 clankers-macros = { path = "crates/clankers-macros", version = "0.1.4" }
 clankers-geometry = { path = "crates/clankers-geometry", version = "0.1.4" }
 clankers-runtime = { path = "crates/clankers-runtime", version = "0.1.4" }
+clankers-ffi = { path = "crates/clankers-ffi", version = "0.1.4" }
 
 anyhow = "1"
 async-trait = "0.1"

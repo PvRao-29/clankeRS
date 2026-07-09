@@ -1,0 +1,26 @@
+[package]
+name = "clankers-ffi"
+description = "Stable C ABI for clankeRS inference"
+readme = "README.md"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+crate-type = ["rlib", "cdylib", "staticlib"]
+
+[features]
+default = ["onnxruntime"]
+onnxruntime = ["clankers-ml/onnxruntime"]
+
+[dependencies]
+clankers-ml = { workspace = true }
+clankers-tensor = { workspace = true }
+
+[build-dependencies]
+cbindgen = "0.27"
+
+[dev-dependencies]
+tempfile = "3"

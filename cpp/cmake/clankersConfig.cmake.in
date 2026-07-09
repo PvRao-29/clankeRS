@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+include("${CMAKE_CURRENT_LIST_DIR}/clankersTargets.cmake")
+
+set(CLANKERS_FFI_LIB "@CLANKERS_FFI_LIB@")
+
+check_required_components(clankers)

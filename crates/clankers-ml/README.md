@@ -18,7 +18,7 @@
 
 Load ONNX models through a pluggable backend runtime, bind zero-copy [`TensorView`](https://docs.rs/clankers-tensor/latest/clankers_tensor/struct.TensorView.html) inputs, and validate Rust output against offline PyTorch references.
 
-[`Model`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html) is the main API. [`InferenceEngine`](https://docs.rs/clankers-ml/latest/clankers_ml/inference/struct.InferenceEngine.html) is the lower-level runtime underneath for custom backends and allocation policies.
+[`Model`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html) is the main API. [`InferenceEngine`](https://docs.rs/clankers-ml/latest/clankers_ml/inference/struct.InferenceEngine.html) is the lower-level runtime underneath for custom backends and allocation policies — the same engine is exposed to C/C++ via [`clankers-ffi`](https://crates.io/crates/clankers-ffi) and [`cpp/`](https://github.com/PvRao-29/clankeRS/tree/main/cpp).
 
 ## Install
 
@@ -89,6 +89,7 @@ let output = model.run(&input_f32)?;
 - [Architecture — inference stack](https://github.com/PvRao-29/clankeRS/blob/main/docs/architecture.md)
 - [PyTorch → ONNX](https://github.com/PvRao-29/clankeRS/blob/main/docs/pytorch_to_onnx.md)
 - [Model validation](https://github.com/PvRao-29/clankeRS/blob/main/docs/model_validation.md)
+- [C++ SDK](https://github.com/PvRao-29/clankeRS/blob/main/cpp/README.md) — C ABI over `InferenceEngine` (v0.1.4)
 
 ## License
 

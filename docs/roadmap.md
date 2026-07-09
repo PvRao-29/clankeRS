@@ -23,12 +23,18 @@ Shipped on crates.io as **v0.1.3**:
 
 - Expanded [docs.rs](https://docs.rs/clankers) crate guides with quick-start examples on every crate
 
-## v0.1.4 — Badge and docs fixes (current)
+## v0.1.4 — C++ FFI + inference SDK (current)
 
-Shipped on crates.io as **v0.1.4**:
+Shipped on crates.io as **v0.1.4**, including the C/C++ inference bindings:
 
 - Fixed crates.io README badges (shields.io version pins 404; use static or unversioned URLs)
 - Added `clankers-cli` library target so docs.rs builds succeed
+- **`clankers-ffi`** — stable C ABI (`clankers.h` via `cbindgen`) over `InferenceEngine`: engine builder, zero-copy `TensorView`, `run` / `run_named` / `run_into`, `InferenceStats`, panic-safe `extern "C"` entry points
+- **`cpp/`** — C++17 RAII wrappers (`clankers::Engine`, `TensorView`, `Tensor`, `Error`), CMake packaging, `minimal_inference` and `zero_alloc_loop` examples
+- **`scripts/build_cpp_sdk.sh`** — one-command `cargo build -p clankers-ffi` + CMake build
+- **CI** — `cpp-sdk` job on Ubuntu 22.04 (FFI tests, C header `-Wall -Werror` smoke compile, example binaries); `no-default-features` covers noop-only `clankers-ffi`
+
+**Not in v0.1.4 yet:** `find_package(clankers)` install docs, rclcpp perception colcon package (planned next).
 
 ## v1.0 — Production-ready SDK
 - [x] Modular inference engine — backend-agnostic `InferenceEngine` over
@@ -49,5 +55,8 @@ Shipped on crates.io as **v0.1.4**:
   build (`scripts/setup_ros2_ws.sh`) and a graceful executor shutdown. Remaining:
   a custom `.msg` for `DetectionArray` (currently on the `std_msgs/String` JSON
   path) and broader message coverage. See [docs/ros2_integration.md](ros2_integration.md).
+- [~] C++ inference SDK — stable C ABI (`clankers-ffi`) + C++17 wrappers (`cpp/`)
+  land in **v0.1.4** with ONNX `run`, `run_into`, and per-run stats. Remaining:
+  rclcpp perception colcon package, `docs/cpp_integration.md`. See [cpp/README.md](../cpp/README.md).
 - [ ] Optional LibTorch / ExecuTorch backends
 - [ ] Expanded geometry and runtime modules
