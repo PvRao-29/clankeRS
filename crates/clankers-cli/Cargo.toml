@@ -8,6 +8,10 @@ license.workspace = true
 repository.workspace = true
 authors.workspace = true
 
+[lib]
+name = "clankers_cli"
+path = "src/lib.rs"
+
 [[bin]]
 name = "clankers"
 path = "src/main.rs"
