@@ -1,6 +1,4 @@
 use std::env;
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 
 fn write_header(path: &Path, header: &str) {
@@ -9,22 +7,6 @@ fn write_header(path: &Path, header: &str) {
     }
     std::fs::write(path, header).expect("write clankers.h");
 }
-
-// #region agent log
-fn debug_log(hypothesis_id: &str, message: &str, out_header: &str, cpp_sync: bool, wrote_in_crate: bool) {
-    let log_path = "/Users/pranshurao/Documents/Projects/clankeRS/.cursor/debug-687318.log";
-    let ts = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis())
-        .unwrap_or(0);
-    let line = format!(
-        r#"{{"sessionId":"687318","hypothesisId":"{hypothesis_id}","location":"build.rs:main","message":"{message}","data":{{"out_header":"{out_header}","cpp_sync":{cpp_sync},"wrote_in_crate_include":{wrote_in_crate}}},"timestamp":{ts},"runId":"post-fix"}}"#
-    );
-    if let Ok(mut f) = OpenOptions::new().create(true).append(true).open(log_path) {
-        let _ = writeln!(f, "{line}");
-    }
-}
-// #endregion
 
 fn main() {
     let crate_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
@@ -56,25 +38,14 @@ fn main() {
         .join("include")
         .join("clankers")
         .join("clankers.h");
-    let cpp_sync = cpp_header
+    if cpp_header
         .parent()
         .and_then(|dir| dir.parent())
         .map(|dir| dir.join("clankers.hpp").is_file())
-        .unwrap_or(false);
-    if cpp_sync {
+        .unwrap_or(false)
+    {
         write_header(&cpp_header, &header);
     }
-
-    let in_crate_include = crate_dir.join("include/clankers/clankers.h");
-    // #region agent log
-    debug_log(
-        "H1",
-        "build.rs write targets",
-        &out_header.display().to_string(),
-        cpp_sync,
-        in_crate_include.is_file(),
-    );
-    // #endregion
 
     println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=cbindgen.toml");
