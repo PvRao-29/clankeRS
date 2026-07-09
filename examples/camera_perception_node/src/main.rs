@@ -30,7 +30,7 @@ async fn main() -> RobotResult<()> {
         .unwrap_or_else(|| PathBuf::from("sample_data/models/detector.onnx"));
 
     let mut model = match ctx.model_config("detector") {
-        Ok(cfg) => ModelBuilder::from_config(&cfg, model_path.clone())
+        Ok(cfg) => ModelBuilder::from_config(cfg, model_path.clone())
             .ok()
             .and_then(|b| b.build().ok()),
         Err(_) => Model::builder()
@@ -39,7 +39,9 @@ async fn main() -> RobotResult<()> {
             .ok(),
     };
 
-    let input_name = model.as_ref().map(|m| m.engine().input_specs()[0].name.clone());
+    let input_name = model
+        .as_ref()
+        .map(|m| m.engine().input_specs()[0].name.clone());
 
     if model.is_some() {
         tracing::info!(path = %model_path.display(), "loaded ONNX model");

@@ -15,9 +15,9 @@ use crate::inference::builder::InferenceEngineBuilder;
 use crate::inference::session::{bind_input, check_output, prepare_outputs, Binding};
 use crate::inference::{InferenceError, InferenceResult, InferenceStats};
 
-/// Lower-level inference runtime used by [`Model`].
+/// Lower-level inference runtime used by [`Model`](crate::Model).
 ///
-/// Most applications should use [`Model`]. Use `InferenceEngine` directly when
+/// Most applications should use [`Model`](crate::Model). Use `InferenceEngine` directly when
 /// implementing custom backends, custom allocation policies, or advanced runtime
 /// integrations.
 pub struct InferenceEngine<S: BackendSession> {
@@ -322,11 +322,10 @@ mod tests {
     #[test]
     fn run_returns_identity_outputs() {
         // Milestone 3 deliverable: `engine.run(&[view])` yields outputs.
-        let mut engine = InferenceEngine::builder(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 4]),
-        ))
-        .build()
-        .unwrap();
+        let mut engine =
+            InferenceEngine::builder(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .build()
+                .unwrap();
 
         let data = vec![1.0f32, 2.0, 3.0, 4.0];
         let shape = Shape::from([1, 4]);
@@ -339,50 +338,61 @@ mod tests {
     fn zero_copy_path_reports_no_conversion_copies() {
         // NoopBackend advertises `zero_copy_inputs`, so a spec-matching contiguous
         // input is bound by borrow: engine conversion copies must be zero.
-        let mut engine = InferenceEngine::builder(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 4]),
-        ))
-        .build()
-        .unwrap();
+        let mut engine =
+            InferenceEngine::builder(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .build()
+                .unwrap();
 
         let data = vec![5.0f32; 4];
         let shape = Shape::from([1, 4]);
         let (_out, stats) = engine.run_with_stats(&[f32_view(&data, &shape)]).unwrap();
-        assert_eq!(stats.clankers_copies, 0, "matching input must not be copied");
+        assert_eq!(
+            stats.clankers_copies, 0,
+            "matching input must not be copied"
+        );
         assert!(stats.is_zero_copy());
     }
 
     #[test]
     fn wrong_input_count_errors() {
-        let mut engine = InferenceEngine::builder(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 4]),
-        ))
-        .build()
-        .unwrap();
+        let mut engine =
+            InferenceEngine::builder(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .build()
+                .unwrap();
         let err = engine.run(&[]).unwrap_err();
         assert!(matches!(
             err,
-            InferenceError::InputCount { expected: 1, got: 0 }
+            InferenceError::InputCount {
+                expected: 1,
+                got: 0
+            }
         ));
     }
 
     #[test]
     fn dtype_mismatch_is_structured_error() {
-        let mut engine = InferenceEngine::builder(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 4]),
-        ))
-        .build()
-        .unwrap();
+        let mut engine =
+            InferenceEngine::builder(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .build()
+                .unwrap();
 
         // U8 input where the backend expects F32.
         let data = vec![0u8; 4];
         let shape = Shape::from([1, 4]);
-        let view =
-            TensorView::from_slice(&data, DType::U8, &shape, clankers_tensor::Layout::Contiguous)
-                .unwrap();
+        let view = TensorView::from_slice(
+            &data,
+            DType::U8,
+            &shape,
+            clankers_tensor::Layout::Contiguous,
+        )
+        .unwrap();
         let err = engine.run(&[view]).unwrap_err();
         match err {
-            InferenceError::InvalidInput { name, expected, got } => {
+            InferenceError::InvalidInput {
+                name,
+                expected,
+                got,
+            } => {
                 assert_eq!(name, "input");
                 assert_eq!(expected, "F32 [1,4]");
                 assert_eq!(got, "U8 [1,4]");
@@ -451,7 +461,10 @@ mod tests {
         let data = vec![1.0f32, 2.0, 3.0, 4.0];
         let shape = Shape::from([1, 4]);
         let (out, stats) = engine.run_with_stats(&[f32_view(&data, &shape)]).unwrap();
-        assert_eq!(stats.clankers_copies, 1, "owning backend must force one input copy");
+        assert_eq!(
+            stats.clankers_copies, 1,
+            "owning backend must force one input copy"
+        );
         assert_eq!(stats.clankers_bytes_copied, 16);
         assert!(stats.allocations >= 1);
         assert_eq!(out[0].as_f32().unwrap(), data.as_slice());
@@ -516,13 +529,12 @@ mod tests {
     #[test]
     fn run_into_is_zero_alloc_in_a_hot_loop() {
         // Milestone 6 deliverable: a preallocated-output hot loop that never allocates.
-        let mut engine = InferenceEngine::builder(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 4]),
-        ))
-        .allocation_policy(clankers_tensor::AllocationPolicy::Preallocate)
-        .strict_realtime(true)
-        .build()
-        .unwrap();
+        let mut engine =
+            InferenceEngine::builder(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .allocation_policy(clankers_tensor::AllocationPolicy::Preallocate)
+                .strict_realtime(true)
+                .build()
+                .unwrap();
 
         let input = vec![1.0f32, 2.0, 3.0, 4.0];
         let in_shape = Shape::from([1, 4]);
@@ -532,19 +544,22 @@ mod tests {
             let vm = TensorViewMut::from_f32(&mut out, Shape::from([1, 4])).unwrap();
             let stats = engine.run_into(&[view], &mut [vm]).unwrap();
             assert_eq!(stats.allocations, 0, "iteration {i} allocated");
-            assert_eq!(stats.clankers_copies, 0, "iteration {i} copied a zero-copy input");
+            assert_eq!(
+                stats.clankers_copies, 0,
+                "iteration {i} copied a zero-copy input"
+            );
         }
         assert_eq!(out, input);
     }
 
     #[test]
     fn strict_realtime_accepts_capable_backend() {
-        assert!(InferenceEngine::builder(NoopBackend::identity(ShapeSpec::from_onnx_dims(
-            &[1, 4]
-        )))
-        .strict_realtime(true)
-        .build()
-        .is_ok());
+        assert!(
+            InferenceEngine::builder(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .strict_realtime(true)
+                .build()
+                .is_ok()
+        );
     }
 
     #[test]
@@ -563,22 +578,28 @@ mod tests {
         let shape = Shape::from([1, 4]);
         let mut out = vec![0.0f32; 4];
         let vm = TensorViewMut::from_f32(&mut out, Shape::from([1, 4])).unwrap();
-        let err = engine.run_into(&[f32_view(&data, &shape)], &mut [vm]).unwrap_err();
-        assert!(matches!(err, InferenceError::UnsupportedPreallocatedOutputs { .. }));
+        let err = engine
+            .run_into(&[f32_view(&data, &shape)], &mut [vm])
+            .unwrap_err();
+        assert!(matches!(
+            err,
+            InferenceError::UnsupportedPreallocatedOutputs { .. }
+        ));
     }
 
     #[test]
     fn run_into_validates_output_buffer() {
-        let mut engine = InferenceEngine::builder(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 4]),
-        ))
-        .build()
-        .unwrap();
+        let mut engine =
+            InferenceEngine::builder(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .build()
+                .unwrap();
         let data = vec![0.0f32; 4];
         let shape = Shape::from([1, 4]);
         let mut wrong = vec![0.0f32; 8]; // wrong length for a [1,4] output
         let vm = TensorViewMut::from_f32(&mut wrong, Shape::from([1, 8])).unwrap();
-        let err = engine.run_into(&[f32_view(&data, &shape)], &mut [vm]).unwrap_err();
+        let err = engine
+            .run_into(&[f32_view(&data, &shape)], &mut [vm])
+            .unwrap_err();
         assert!(matches!(err, InferenceError::InvalidOutput { .. }));
     }
 
@@ -609,11 +630,10 @@ mod tests {
 
     #[test]
     fn run_named_rejects_unknown_input() {
-        let mut engine = InferenceEngine::builder(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 4]),
-        ))
-        .build()
-        .unwrap();
+        let mut engine =
+            InferenceEngine::builder(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .build()
+                .unwrap();
         let data = vec![0.0f32; 4];
         let shape = Shape::from([1, 4]);
         let err = engine
@@ -634,13 +654,20 @@ mod tests {
 
         // First run converts the input (an allocation) and fills the output.
         let vm = TensorViewMut::from_f32(&mut out, Shape::from([1, 4])).unwrap();
-        let s1 = engine.run_into(&[f32_view(&data, &shape)], &mut [vm]).unwrap();
-        assert_eq!(s1.clankers_copies, 1, "owning backend forces an input conversion");
+        let s1 = engine
+            .run_into(&[f32_view(&data, &shape)], &mut [vm])
+            .unwrap();
+        assert_eq!(
+            s1.clankers_copies, 1,
+            "owning backend forces an input conversion"
+        );
         assert!(s1.allocations >= 1);
 
         // Second run reuses the pooled conversion buffer → no allocation.
         let vm = TensorViewMut::from_f32(&mut out, Shape::from([1, 4])).unwrap();
-        let s2 = engine.run_into(&[f32_view(&data, &shape)], &mut [vm]).unwrap();
+        let s2 = engine
+            .run_into(&[f32_view(&data, &shape)], &mut [vm])
+            .unwrap();
         assert_eq!(s2.clankers_copies, 1);
         assert_eq!(s2.allocations, 0, "conversion buffer should be reused");
         assert_eq!(out, data);

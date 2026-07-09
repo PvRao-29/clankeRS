@@ -10,12 +10,12 @@ use std::time::{Duration, Instant};
 
 use anyhow::{bail, Context, Result};
 
-use clankers_ml::backend::{BackendSession, TensorSpec};
-use clankers_ml::inference::{noop_engine_from_config, onnx_engine_from_config};
-use clankers_ml::inference::InferenceEngine;
-use clankers_ml::{InferenceStats};
-use clankers_tensor::{Tensor, TensorView};
 use clankers_core::config::ModelConfig;
+use clankers_ml::backend::{BackendSession, TensorSpec};
+use clankers_ml::inference::InferenceEngine;
+use clankers_ml::inference::{noop_engine_from_config, onnx_engine_from_config};
+use clankers_ml::InferenceStats;
+use clankers_tensor::{Tensor, TensorView};
 
 pub fn execute(
     model: &str,

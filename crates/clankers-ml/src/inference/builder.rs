@@ -153,12 +153,11 @@ mod tests {
 
     #[test]
     fn builds_and_runs_a_noop_engine() {
-        let mut engine = InferenceEngineBuilder::new(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 3]),
-        ))
-        .warmup(2)
-        .build()
-        .unwrap();
+        let mut engine =
+            InferenceEngineBuilder::new(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 3])))
+                .warmup(2)
+                .build()
+                .unwrap();
 
         assert_eq!(engine.backend_name(), "noop");
         assert_eq!(engine.input_specs().len(), 1);
@@ -174,12 +173,11 @@ mod tests {
     #[test]
     fn rejects_unsupported_device() {
         // NoopBackend only advertises CPU.
-        let err = InferenceEngineBuilder::new(NoopBackend::identity(ShapeSpec::from_onnx_dims(
-            &[1, 3],
-        )))
-        .device(Device::Cuda(0))
-        .build()
-        .unwrap_err();
+        let err =
+            InferenceEngineBuilder::new(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 3])))
+                .device(Device::Cuda(0))
+                .build()
+                .unwrap_err();
         assert!(matches!(err, InferenceError::UnsupportedDevice(_)));
     }
 
@@ -198,35 +196,29 @@ mod tests {
 
     #[test]
     fn apply_model_config_sets_warmup_and_device() {
-        let builder = InferenceEngineBuilder::new(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 4]),
-        ))
-        .apply_model_config(&model_config("cpu", Some(7)))
-        .unwrap();
+        let builder =
+            InferenceEngineBuilder::new(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .apply_model_config(&model_config("cpu", Some(7)))
+                .unwrap();
         assert_eq!(builder.warmup, 7);
         assert_eq!(builder.device, Device::Cpu);
     }
 
     #[test]
     fn apply_model_config_rejects_unparseable_device() {
-        let result = InferenceEngineBuilder::new(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 4]),
-        ))
-        .apply_model_config(&model_config("tpu", None));
-        assert!(matches!(
-            result,
-            Err(InferenceError::UnsupportedDevice(_))
-        ));
+        let result =
+            InferenceEngineBuilder::new(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 4])))
+                .apply_model_config(&model_config("tpu", None));
+        assert!(matches!(result, Err(InferenceError::UnsupportedDevice(_))));
     }
 
     #[test]
     fn warmup_does_not_leak_into_run_stats() {
-        let mut engine = InferenceEngineBuilder::new(NoopBackend::identity(
-            ShapeSpec::from_onnx_dims(&[1, 3]),
-        ))
-        .warmup(5)
-        .build()
-        .unwrap();
+        let mut engine =
+            InferenceEngineBuilder::new(NoopBackend::identity(ShapeSpec::from_onnx_dims(&[1, 3])))
+                .warmup(5)
+                .build()
+                .unwrap();
         let data = vec![0.0f32; 3];
         let shape = Shape::from([1, 3]);
         let (_out, stats) = engine

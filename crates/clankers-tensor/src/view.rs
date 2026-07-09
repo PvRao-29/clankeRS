@@ -71,8 +71,9 @@ impl<'a> TensorView<'a> {
     pub fn from_f32(data: &'a [f32], shape: &'a Shape) -> TensorResult<Self> {
         // A `&[f32]` is always 4-byte aligned and `len*4` bytes long, so the only
         // thing that can fail here is a shape/length disagreement.
-        let bytes =
-            unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u8, std::mem::size_of_val(data)) };
+        let bytes = unsafe {
+            std::slice::from_raw_parts(data.as_ptr() as *const u8, std::mem::size_of_val(data))
+        };
         Self::from_slice(bytes, DType::F32, shape, Layout::Contiguous)
     }
 
@@ -183,7 +184,8 @@ impl<'a> TensorViewMut<'a> {
     /// Build a contiguous `F32` mutable view over a typed slice.
     pub fn from_f32(data: &'a mut [f32], shape: Shape) -> TensorResult<Self> {
         let byte_len = std::mem::size_of_val(data);
-        let bytes = unsafe { std::slice::from_raw_parts_mut(data.as_mut_ptr() as *mut u8, byte_len) };
+        let bytes =
+            unsafe { std::slice::from_raw_parts_mut(data.as_mut_ptr() as *mut u8, byte_len) };
         Self::from_slice(bytes, DType::F32, shape, Layout::Contiguous)
     }
 
@@ -290,7 +292,8 @@ mod tests {
     fn rejects_wrong_byte_length() {
         let data = [0u8; 40]; // not a multiple that fits [1,12] f32 (needs 48)
         let shape = Shape::from([1, 12]);
-        let err = TensorView::from_slice(&data, DType::F32, &shape, Layout::Contiguous).unwrap_err();
+        let err =
+            TensorView::from_slice(&data, DType::F32, &shape, Layout::Contiguous).unwrap_err();
         assert!(matches!(err, TensorError::ByteLength { .. }));
     }
 
@@ -302,8 +305,8 @@ mod tests {
         let shape = Shape::from([1, 2]);
         // Only assert the alignment path when the slice is actually misaligned.
         if !(misaligned.as_ptr() as usize).is_multiple_of(4) {
-            let err =
-                TensorView::from_slice(misaligned, DType::F32, &shape, Layout::Contiguous).unwrap_err();
+            let err = TensorView::from_slice(misaligned, DType::F32, &shape, Layout::Contiguous)
+                .unwrap_err();
             assert!(matches!(err, TensorError::Alignment { .. }));
         }
     }

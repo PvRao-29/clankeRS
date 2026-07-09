@@ -147,9 +147,7 @@ impl Model {
             .first()
             .map(|s| s.name.clone())
             .unwrap_or_else(|| "input".to_string());
-        let outputs = self
-            .run_named([(spec_name.as_str(), view)])
-            .map_err(RobotError::from)?;
+        let outputs = self.run_named([(spec_name.as_str(), view)])?;
         outputs
             .first()
             .ok_or_else(|| RobotError::Model("model produced no outputs".into()))?
@@ -225,41 +223,42 @@ impl ModelBuilder {
 
     /// Start a builder from a [`ModelConfig`] and resolved model path.
     pub fn from_config(config: &ModelConfig, path: impl AsRef<Path>) -> RobotResult<Self> {
-        let backend = match config.backend_kind()? {
-            ModelBackendKind::OnnxRuntime => {
-                #[cfg(feature = "onnxruntime")]
-                {
-                    RuntimeBackend::OnnxRuntime(OnnxRuntimeBackend::default())
-                }
-                #[cfg(not(feature = "onnxruntime"))]
-                {
-                    return Err(RobotError::Model(
-                        "onnxruntime backend requires the onnxruntime feature".into(),
-                    ));
-                }
-            }
+        match config.backend_kind()? {
             ModelBackendKind::Noop => {
                 return Err(RobotError::Model(
                     "noop backend is not supported for Model; use InferenceEngine directly".into(),
                 ));
             }
-        };
-        let device = Device::parse(&config.device).ok_or_else(|| {
-            RobotError::Model(format!("unsupported model device {:?}", config.device))
-        })?;
-        let mut builder = Self::new()
-            .path(path)
-            .backend(backend)
-            .metadata_backend(config.backend.clone())
-            .device(device)
-            .source_framework(config.source_framework.clone().unwrap_or_default());
-        if let Some(warmup) = config.warmup_runs {
-            builder = builder.warmup_runs(warmup);
+            ModelBackendKind::OnnxRuntime => {}
         }
-        if let Some(max) = config.max_latency() {
-            builder = builder.max_latency(max);
+
+        #[cfg(not(feature = "onnxruntime"))]
+        {
+            let _ = path.as_ref();
+            return Err(RobotError::Model(
+                "onnxruntime backend requires the onnxruntime feature".into(),
+            ));
         }
-        Ok(builder)
+
+        #[cfg(feature = "onnxruntime")]
+        {
+            let device = Device::parse(&config.device).ok_or_else(|| {
+                RobotError::Model(format!("unsupported model device {:?}", config.device))
+            })?;
+            let mut builder = Self::new()
+                .path(path)
+                .backend(RuntimeBackend::OnnxRuntime(OnnxRuntimeBackend::default()))
+                .metadata_backend(config.backend.clone())
+                .device(device)
+                .source_framework(config.source_framework.clone().unwrap_or_default());
+            if let Some(warmup) = config.warmup_runs {
+                builder = builder.warmup_runs(warmup);
+            }
+            if let Some(max) = config.max_latency() {
+                builder = builder.max_latency(max);
+            }
+            Ok(builder)
+        }
     }
 
     pub fn path(mut self, path: impl AsRef<Path>) -> Self {

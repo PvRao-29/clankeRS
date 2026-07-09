@@ -73,8 +73,10 @@ impl<'a> BackendTensor<'a> {
     pub fn into_owned(self) -> Tensor {
         match self {
             BackendTensor::Owned(t) => t,
-            BackendTensor::Borrowed(v) => Tensor::from_bytes(v.dtype(), v.shape().clone(), v.bytes())
-                .expect("a valid view always yields a valid owned tensor"),
+            BackendTensor::Borrowed(v) => {
+                Tensor::from_bytes(v.dtype(), v.shape().clone(), v.bytes())
+                    .expect("a valid view always yields a valid owned tensor")
+            }
             BackendTensor::BorrowedMut(v) => {
                 let view = v.as_view();
                 Tensor::from_bytes(view.dtype(), view.shape().clone(), view.bytes())

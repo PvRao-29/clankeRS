@@ -9,10 +9,12 @@ pub use clankers_core::{
 pub use clankers_data::{InspectReport, McapLog, Replay, ReplayResult};
 pub use clankers_geometry::{Pose, Transform, Twist};
 pub use clankers_macros::{node, replay_test};
+#[cfg(feature = "ml")]
+pub use clankers_ml::onnx_engine_from_config;
 pub use clankers_ml::{
-    engine_from_model_config, noop_engine_from_config, onnx_engine_from_config, ConfiguredEngine,
-    InferenceEngine, InferenceError, InferenceStats, Model, ModelBuilder, ModelEngine,
-    ModelValidator, NamedOutputs, RuntimeBackend, ValidationReport,
+    engine_from_model_config, noop_engine_from_config, ConfiguredEngine, InferenceEngine,
+    InferenceError, InferenceStats, Model, ModelBuilder, ModelEngine, ModelValidator, NamedOutputs,
+    RuntimeBackend, ValidationReport,
 };
 pub use clankers_ros2::{
     Detection, DetectionArray, ImageMsg, Publisher, QosProfile, RobotNode, Subscriber,
@@ -44,10 +46,10 @@ pub mod ml {
     pub use clankers_ml::*;
 }
 
-/// Lower-level inference runtime used by [`Model`](clankers_ml::Model).
+/// Lower-level inference runtime used by [`Model`].
 ///
-/// Most applications should use [`Model`](clankers_ml::Model). Construct an
-/// [`InferenceEngine`](clankers_ml::inference::InferenceEngine) directly when
+/// Most applications should use [`Model`]. Construct an
+/// [`InferenceEngine`] directly when
 /// implementing custom backends, allocation policies, or advanced integrations.
 pub mod inference {
     pub use clankers_ml::inference::*;

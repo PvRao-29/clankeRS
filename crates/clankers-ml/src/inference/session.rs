@@ -87,9 +87,10 @@ pub(crate) fn prepare_outputs(
 /// mismatch.
 pub(crate) fn check_output(view: &TensorViewMut, spec: &TensorSpec) -> Result<(), InferenceError> {
     let ro = view.as_view();
-    spec.check(&ro).map_err(|(expected, got)| InferenceError::InvalidOutput {
-        name: spec.name.clone(),
-        expected,
-        got,
-    })
+    spec.check(&ro)
+        .map_err(|(expected, got)| InferenceError::InvalidOutput {
+            name: spec.name.clone(),
+            expected,
+            got,
+        })
 }

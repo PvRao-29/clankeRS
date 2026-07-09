@@ -1,6 +1,6 @@
 //! Tensor specifications: what a backend expects at each input/output slot.
 
-use clankers_tensor::{DataLayout, DType, Layout, ShapeSpec, TensorView};
+use clankers_tensor::{DType, DataLayout, Layout, ShapeSpec, TensorView};
 
 /// A description of one input or output tensor of a model.
 ///
@@ -47,7 +47,11 @@ impl TensorSpec {
     pub fn describe(&self) -> String {
         let dtype = self.dtype.as_str().to_uppercase();
         match self.data_layout {
-            Some(dl) => format!("{dtype} {} {}", self.shape, format!("{dl:?}").to_uppercase()),
+            Some(dl) => format!(
+                "{dtype} {} {}",
+                self.shape,
+                format!("{dl:?}").to_uppercase()
+            ),
             None => format!("{dtype} {}", self.shape),
         }
     }
@@ -90,11 +94,7 @@ mod tests {
     use clankers_tensor::{DType, Shape};
 
     fn spec() -> TensorSpec {
-        TensorSpec::new(
-            "state",
-            DType::F32,
-            ShapeSpec::from_onnx_dims(&[1, 12]),
-        )
+        TensorSpec::new("state", DType::F32, ShapeSpec::from_onnx_dims(&[1, 12]))
     }
 
     #[test]
@@ -118,8 +118,12 @@ mod tests {
 
     #[test]
     fn describe_includes_semantic_layout() {
-        let s = TensorSpec::new("image", DType::F32, ShapeSpec::from_onnx_dims(&[1, 3, 224, 224]))
-            .with_data_layout(DataLayout::Nchw);
+        let s = TensorSpec::new(
+            "image",
+            DType::F32,
+            ShapeSpec::from_onnx_dims(&[1, 3, 224, 224]),
+        )
+        .with_data_layout(DataLayout::Nchw);
         assert_eq!(s.describe(), "F32 [1,3,224,224] NCHW");
     }
 }

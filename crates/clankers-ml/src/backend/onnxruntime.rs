@@ -164,7 +164,10 @@ fn specs_from_outlets(outlets: &[ort::value::Outlet]) -> InferenceResult<Vec<Ten
                 let dtype = map_element_type(*ty).ok_or_else(|| {
                     InferenceError::backend(
                         "onnxruntime",
-                        format!("tensor {:?} has unsupported element type {ty:?}", outlet.name()),
+                        format!(
+                            "tensor {:?} has unsupported element type {ty:?}",
+                            outlet.name()
+                        ),
                     )
                 })?;
                 Ok(TensorSpec::new(
@@ -182,28 +185,28 @@ fn specs_from_outlets(outlets: &[ort::value::Outlet]) -> InferenceResult<Vec<Ten
 }
 
 /// Build a borrowing `ort` input value from a caller view — the zero-copy path.
-fn input_value<'v>(
-    view: &TensorView<'v>,
-    name: &str,
-) -> InferenceResult<SessionInputValue<'v>> {
+fn input_value<'v>(view: &TensorView<'v>, name: &str) -> InferenceResult<SessionInputValue<'v>> {
     let shape: Vec<i64> = view.shape().dims().iter().map(|&d| d as i64).collect();
     let value = match view.dtype() {
         DType::F32 => {
             let data: &'v [f32] = view.as_f32()?;
-            let tensor = TensorRef::from_array_view((shape, data))
-                .map_err(|e| InferenceError::backend("onnxruntime", format!("input {name:?}: {e}")))?;
+            let tensor = TensorRef::from_array_view((shape, data)).map_err(|e| {
+                InferenceError::backend("onnxruntime", format!("input {name:?}: {e}"))
+            })?;
             SessionInputValue::from(tensor)
         }
         DType::I64 => {
             let data: &'v [i64] = view.as_i64()?;
-            let tensor = TensorRef::from_array_view((shape, data))
-                .map_err(|e| InferenceError::backend("onnxruntime", format!("input {name:?}: {e}")))?;
+            let tensor = TensorRef::from_array_view((shape, data)).map_err(|e| {
+                InferenceError::backend("onnxruntime", format!("input {name:?}: {e}"))
+            })?;
             SessionInputValue::from(tensor)
         }
         DType::U8 => {
             let data: &'v [u8] = view.as_u8()?;
-            let tensor = TensorRef::from_array_view((shape, data))
-                .map_err(|e| InferenceError::backend("onnxruntime", format!("input {name:?}: {e}")))?;
+            let tensor = TensorRef::from_array_view((shape, data)).map_err(|e| {
+                InferenceError::backend("onnxruntime", format!("input {name:?}: {e}"))
+            })?;
             SessionInputValue::from(tensor)
         }
         other => {

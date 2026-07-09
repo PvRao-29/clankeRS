@@ -17,7 +17,10 @@ pub trait Transform {
     where
         Self: Sized,
     {
-        Chain { first: self, second: next }
+        Chain {
+            first: self,
+            second: next,
+        }
     }
 }
 

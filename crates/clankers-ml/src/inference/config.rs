@@ -45,7 +45,9 @@ pub fn engine_from_model_config(
         ModelBackendKind::OnnxRuntime => {
             #[cfg(feature = "onnxruntime")]
             {
-                Ok(ConfiguredEngine::OnnxRuntime(onnx_engine_from_config(config, model)?))
+                Ok(ConfiguredEngine::OnnxRuntime(onnx_engine_from_config(
+                    config, model,
+                )?))
             }
             #[cfg(not(feature = "onnxruntime"))]
             {
@@ -82,9 +84,9 @@ pub fn noop_engine_from_config(
     config: &ModelConfig,
     model: impl Into<ModelSource>,
 ) -> InferenceResult<InferenceEngine<NoopSession>> {
-    let model = model.into();
     #[cfg(feature = "onnxruntime")]
-    let (inputs, outputs) = {
+    {
+        let model = model.into();
         let probe = InferenceEngine::builder(OnnxRuntimeBackend::default())
             .model(model)
             .build()?;
@@ -97,19 +99,18 @@ pub fn noop_engine_from_config(
                 outputs.len()
             )));
         }
-        (inputs, outputs)
-    };
-    #[cfg(not(feature = "onnxruntime"))]
-    let (inputs, outputs) = {
-        let _ = model;
-        return Err(InferenceError::Config(
-            "noop backend with model-derived specs requires the onnxruntime feature".into(),
-        ));
-    };
+        InferenceEngine::builder(NoopBackend::new(inputs, outputs))
+            .apply_model_config(config)?
+            .build()
+    }
 
-    InferenceEngine::builder(NoopBackend::new(inputs, outputs))
-        .apply_model_config(config)?
-        .build()
+    #[cfg(not(feature = "onnxruntime"))]
+    {
+        let _ = (config, model);
+        Err(InferenceError::Config(
+            "noop backend with model-derived specs requires the onnxruntime feature".into(),
+        ))
+    }
 }
 
 /// Build a noop engine from explicit tensor specs (no ONNX probe).

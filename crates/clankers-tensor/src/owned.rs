@@ -41,8 +41,9 @@ impl Tensor {
                 actual: data.len() * DType::F32.element_size(),
             });
         }
-        let bytes =
-            unsafe { std::slice::from_raw_parts(data.as_ptr() as *const u8, std::mem::size_of_val(&data[..])) };
+        let bytes = unsafe {
+            std::slice::from_raw_parts(data.as_ptr() as *const u8, std::mem::size_of_val(&data[..]))
+        };
         Ok(Tensor {
             buffer: Buffer::from_bytes(bytes),
             dtype: DType::F32,
@@ -108,8 +109,13 @@ impl Tensor {
     /// Borrow the whole tensor as a read-only [`TensorView`] (always contiguous).
     pub fn view(&self) -> TensorView<'_> {
         // Length and alignment are guaranteed by construction, so this cannot fail.
-        TensorView::from_slice(self.buffer.as_bytes(), self.dtype, &self.shape, Layout::Contiguous)
-            .expect("owned tensor is always a valid contiguous view")
+        TensorView::from_slice(
+            self.buffer.as_bytes(),
+            self.dtype,
+            &self.shape,
+            Layout::Contiguous,
+        )
+        .expect("owned tensor is always a valid contiguous view")
     }
 
     /// Borrow the whole tensor as a writable [`TensorViewMut`].

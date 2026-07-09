@@ -64,7 +64,10 @@ async fn replay_context_aggregates_frame_latency() {
     .unwrap();
 
     let latency = ctx.latency();
-    assert!(latency.count() > 0, "per-frame latencies should be recorded");
+    assert!(
+        latency.count() > 0,
+        "per-frame latencies should be recorded"
+    );
 }
 
 #[tokio::test]

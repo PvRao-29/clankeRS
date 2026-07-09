@@ -30,7 +30,10 @@ fn templates_compile_after_scaffolding() {
         replace_in_tree(
             &dest,
             "{{CLANKERS_DEPENDENCY}}",
-            &format!(r#"clankers = {{ path = "{}" }}"#, clankers_path.to_string_lossy()),
+            &format!(
+                r#"clankers = {{ path = "{}" }}"#,
+                clankers_path.to_string_lossy()
+            ),
         );
 
         let status = Command::new("cargo")

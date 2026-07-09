@@ -103,17 +103,12 @@ fn golden_path_runs_named_zero_copy_inputs() {
         .load(multi_input_fixture())
         .unwrap();
 
-    let image_bytes = vec![100u8; 1 * 64 * 64 * 3];
+    let image_bytes = vec![100u8; 64 * 64 * 3];
     let state = vec![0.0f32; 12];
     let image_shape = Shape::from([1, 64, 64, 3]);
     let state_shape = Shape::from([1, 12]);
-    let image = TensorView::from_slice(
-        &image_bytes,
-        DType::U8,
-        &image_shape,
-        Layout::Contiguous,
-    )
-    .unwrap();
+    let image =
+        TensorView::from_slice(&image_bytes, DType::U8, &image_shape, Layout::Contiguous).unwrap();
     let state_view = TensorView::from_f32(&state, &state_shape).unwrap();
 
     let outputs = model

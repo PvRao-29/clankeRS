@@ -49,7 +49,7 @@ Shipped on crates.io as **v0.1.2**:
   copy/allocation accounting (`InferenceStats`), preallocated-output `run_into`
   with a `Preallocate` arena for zero-alloc hot loops, `strict_realtime` build
   gating, ROS sensor adapters + composable pipeline transforms, `run_named`
-  multi-input binding, [`Model`] as the primary optimized inference API over the
+  multi-input binding, [`Model`](https://docs.rs/clankers-ml/latest/clankers_ml/struct.Model.html) as the primary optimized inference API over the
   engine, and a
   `clankers bench` command reporting p50/p95/p99 latency and copies/allocations.
 - [ ] Stable public APIs

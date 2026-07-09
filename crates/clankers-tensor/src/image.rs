@@ -122,15 +122,19 @@ impl ImageTensor {
     /// Zero-copy view over NCHW `f32` data after [`to_nchw`](Self::to_nchw).
     ///
     /// Pass the shape from [`nchw_shape`](Self::nchw_shape) so the view can borrow it.
-    pub fn as_nchw_view<'a>(&'a self, shape: &'a crate::Shape) -> RobotResult<crate::TensorView<'a>> {
+    pub fn as_nchw_view<'a>(
+        &'a self,
+        shape: &'a crate::Shape,
+    ) -> RobotResult<crate::TensorView<'a>> {
         if self.layout != DataLayout::Nchw {
             return Err(RobotError::Other(
                 "image tensor must be NCHW before borrowing a view".into(),
             ));
         }
-        let slice = self.data.as_slice().ok_or_else(|| {
-            RobotError::Other("image tensor storage is not contiguous".into())
-        })?;
+        let slice = self
+            .data
+            .as_slice()
+            .ok_or_else(|| RobotError::Other("image tensor storage is not contiguous".into()))?;
         crate::TensorView::from_f32(slice, shape).map_err(RobotError::from)
     }
 

@@ -22,8 +22,14 @@ fn loads_specs_from_onnx_metadata() {
         .unwrap();
 
     assert_eq!(engine.backend_name(), "onnxruntime");
-    assert!(!engine.input_specs().is_empty(), "inputs reflected from model");
-    assert!(!engine.output_specs().is_empty(), "outputs reflected from model");
+    assert!(
+        !engine.input_specs().is_empty(),
+        "inputs reflected from model"
+    );
+    assert!(
+        !engine.output_specs().is_empty(),
+        "outputs reflected from model"
+    );
     // Every input carries a real name from the ONNX graph.
     assert!(engine.input_specs().iter().all(|s| !s.name.is_empty()));
 }
@@ -43,13 +49,19 @@ fn zero_copy_input_runs_without_conversion_copies() {
     let view = TensorView::from_f32(input.as_f32().unwrap(), &shape).unwrap();
 
     let (outputs, stats) = engine.run_with_stats(&[view]).unwrap();
-    assert!(!outputs.is_empty(), "detector should produce output tensors");
+    assert!(
+        !outputs.is_empty(),
+        "detector should produce output tensors"
+    );
     assert!(
         outputs[0].num_elements() > 0,
         "output tensor should be non-empty"
     );
     // The engine bound the contiguous f32 view directly — no conversion copy.
-    assert_eq!(stats.clankers_copies, 0, "matching f32 input must be zero-copy");
+    assert_eq!(
+        stats.clankers_copies, 0,
+        "matching f32 input must be zero-copy"
+    );
     assert!(stats.is_zero_copy());
 }
 
@@ -63,9 +75,13 @@ fn rejects_wrong_input_dtype_with_structured_error() {
     let shape = engine.input_specs()[0].shape.concrete_or_unit();
     // Feed a U8 buffer where the model expects F32.
     let bytes = vec![0u8; shape.num_elements()];
-    let view =
-        TensorView::from_slice(&bytes, DType::U8, &shape, clankers_tensor::Layout::Contiguous)
-            .unwrap();
+    let view = TensorView::from_slice(
+        &bytes,
+        DType::U8,
+        &shape,
+        clankers_tensor::Layout::Contiguous,
+    )
+    .unwrap();
     let err = engine.run(&[view]).unwrap_err();
     assert!(
         matches!(err, clankers_ml::InferenceError::InvalidInput { .. }),

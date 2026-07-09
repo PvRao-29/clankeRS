@@ -1,8 +1,7 @@
 //! Smoke test for the `clankers bench` command against a sample ONNX model.
 
 fn sample_model() -> std::path::PathBuf {
-    std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../sample_data/models/detector.onnx")
+    std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../sample_data/models/detector.onnx")
 }
 
 #[test]
