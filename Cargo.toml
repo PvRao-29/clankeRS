@@ -26,7 +26,7 @@ exclude = [
 default-members = ["crates/clankers-cli", "crates/clankers"]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/PvRao-29/clankeRS"
@@ -37,17 +37,17 @@ authors = ["Pranshu Rao"]
 # Internal crates carry an explicit version alongside the path so the workspace
 # stays publish-ready (a bare path dep reads as a `*` wildcard, which can't be
 # published). Keep these in sync with [workspace.package] version.
-clankers = { path = "crates/clankers", version = "0.1.1" }
-clankers-core = { path = "crates/clankers-core", version = "0.1.1" }
-clankers-cli = { path = "crates/clankers-cli", version = "0.1.1" }
-clankers-ros2 = { path = "crates/clankers-ros2", version = "0.1.1" }
-clankers-data = { path = "crates/clankers-data", version = "0.1.1" }
-clankers-ml = { path = "crates/clankers-ml", version = "0.1.1" }
-clankers-tensor = { path = "crates/clankers-tensor", version = "0.1.1" }
-clankers-testing = { path = "crates/clankers-testing", version = "0.1.1" }
-clankers-macros = { path = "crates/clankers-macros", version = "0.1.1" }
-clankers-geometry = { path = "crates/clankers-geometry", version = "0.1.1" }
-clankers-runtime = { path = "crates/clankers-runtime", version = "0.1.1" }
+clankers = { path = "crates/clankers", version = "0.1.2" }
+clankers-core = { path = "crates/clankers-core", version = "0.1.2" }
+clankers-cli = { path = "crates/clankers-cli", version = "0.1.2" }
+clankers-ros2 = { path = "crates/clankers-ros2", version = "0.1.2" }
+clankers-data = { path = "crates/clankers-data", version = "0.1.2" }
+clankers-ml = { path = "crates/clankers-ml", version = "0.1.2" }
+clankers-tensor = { path = "crates/clankers-tensor", version = "0.1.2" }
+clankers-testing = { path = "crates/clankers-testing", version = "0.1.2" }
+clankers-macros = { path = "crates/clankers-macros", version = "0.1.2" }
+clankers-geometry = { path = "crates/clankers-geometry", version = "0.1.2" }
+clankers-runtime = { path = "crates/clankers-runtime", version = "0.1.2" }
 
 anyhow = "1"
 async-trait = "0.1"

@@ -14,6 +14,7 @@ logs/
 __pycache__/
 *.pt
 *.onnx
+!crates/clankers-ml/tests/fixtures/onnx/*.onnx
 !sample_data/**/*.onnx
 !examples/**/models/*.onnx
 .env
