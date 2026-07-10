@@ -6,7 +6,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/crates/l/clankers.svg" alt="MIT license"></a>
 </p>
 
-**Train in PyTorch. Deploy in Rust or C++. Replay-test against real robot logs.**
+**Train in PyTorch. Deploy in Rust. Replay-test against real robot logs.**
 
 clankeRS is a Rust SDK for robotics teams on ROS 2 and PyTorch. The goal is memory-safe robot nodes, ONNX inference in Rust, MCAP-based replay testing, and a CLI that ties the workflow together. **v0.1.4** adds a stable C ABI (`clankers-ffi`) and idiomatic C++17 wrappers (`cpp/`) so C++ stacks can run the same ONNX inference engine without writing Rust application code.
 
